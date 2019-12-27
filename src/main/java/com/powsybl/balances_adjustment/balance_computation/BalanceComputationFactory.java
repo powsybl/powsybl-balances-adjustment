@@ -6,20 +6,19 @@
  */
 package com.powsybl.balances_adjustment.balance_computation;
 
-import com.powsybl.action.util.Scalable;
-import com.powsybl.balances_adjustment.util.NetworkArea;
 import com.powsybl.computation.ComputationManager;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.loadflow.LoadFlow;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Balance computation factory interface
  *
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 public interface BalanceComputationFactory {
 
-    BalanceComputation create(Network network, Map<NetworkArea, Double> networkAreaNetPositionTargetMap, Map<NetworkArea, Scalable> networkAreasScalable, LoadFlow.Runner loadFlowRunner, ComputationManager computationManager, int priority);
+    BalanceComputation create(Network network, List<BalanceComputationArea> areas, LoadFlow.Runner loadFlowRunner, ComputationManager computationManager, int priority);
 }

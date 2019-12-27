@@ -11,6 +11,7 @@ import com.powsybl.iidm.network.Network;
 import com.powsybl.iidm.network.VoltageLevel;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,21 +20,17 @@ import java.util.stream.Collectors;
  */
 public class CountryArea extends AbstractNetworkArea {
 
-    private final Country country;
+    private final List<Country> countries;
 
-    public CountryArea(Country country) {
-        this.country = country;
-    }
-
-    public Country getCountry() {
-        return country;
+    public CountryArea(Country... countries) {
+        this.countries = Arrays.asList(countries);
     }
 
     @Override
     public List<VoltageLevel> getAreaVoltageLevels(Network network) {
         return network.getVoltageLevelStream()
                 .filter(voltageLevel -> voltageLevel.getSubstation().getCountry().isPresent())
-                .filter(voltageLevel -> voltageLevel.getSubstation().getCountry().get().equals(country))
+                .filter(voltageLevel -> countries.contains(voltageLevel.getSubstation().getCountry().get()))
                 .collect(Collectors.toList());
     }
 
@@ -42,25 +39,7 @@ public class CountryArea extends AbstractNetworkArea {
         return new ArrayList<>();
     }
 
-    @Override
-    public String getName() {
-        return country.getName();
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        if (object == this) {
-            return true;
-        }
-        if (!(object instanceof CountryArea)) {
-            return false;
-        }
-        CountryArea countryArea = (CountryArea) object;
-        return country.getName().equals(countryArea.getName());
-    }
-
-    @Override
-    public int hashCode() {
-        return country.hashCode();
+    public List<Country> getCountries() {
+        return countries;
     }
 }

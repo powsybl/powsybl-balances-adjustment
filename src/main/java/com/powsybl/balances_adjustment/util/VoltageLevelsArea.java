@@ -16,22 +16,14 @@ import java.util.Objects;
  */
 public class VoltageLevelsArea extends AbstractNetworkArea {
 
-    private final String name;
-
     private final List<VoltageLevel> areaVoltageLevels;
 
-    public VoltageLevelsArea(String name, List<VoltageLevel> areaVoltageLevels) {
-        this.name = Objects.requireNonNull(name);
+    public VoltageLevelsArea(List<VoltageLevel> areaVoltageLevels) {
         this.areaVoltageLevels = Objects.requireNonNull(areaVoltageLevels);
     }
 
     @Override
     public List<VoltageLevel> getAreaVoltageLevels(Network network) {
         return areaVoltageLevels;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 }

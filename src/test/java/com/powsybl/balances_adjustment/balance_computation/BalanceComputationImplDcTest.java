@@ -9,7 +9,6 @@ package com.powsybl.balances_adjustment.balance_computation;
 import com.powsybl.action.util.Scalable;
 import com.powsybl.balances_adjustment.util.CountryArea;
 import com.powsybl.balances_adjustment.util.CountryAreaTest;
-import com.powsybl.balances_adjustment.util.NetworkArea;
 import com.powsybl.computation.ComputationManager;
 import com.powsybl.computation.local.LocalComputationManager;
 import com.powsybl.iidm.import_.Importers;
@@ -22,27 +21,25 @@ import com.powsybl.math.matrix.DenseMatrixFactory;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 public class BalanceComputationImplDcTest {
     private Network testNetwork1;
-    private Map<NetworkArea, Double> networkAreaNetPositionTargetMap;
-    private Map<NetworkArea, Scalable> networkAreasScalableMap;
     private ComputationManager computationManager;
     private CountryArea countryAreaFR;
     private CountryArea countryAreaBE;
+    private Scalable scalableFR;
+    private Scalable scalableBE;
 
     private BalanceComputationParameters parameters;
     private BalanceComputationFactory balanceComputationFactory;
     private LoadFlow.Runner loadFlowRunner;
-    private String newStateId = "NewStateId";
 
     @Before
     public void setUp() {
@@ -62,25 +59,20 @@ public class BalanceComputationImplDcTest {
 
         loadFlowRunner = new LoadFlow.Runner(new OpenLoadFlowProvider(new DenseMatrixFactory()));
 
-        networkAreasScalableMap = new HashMap<>();
-        Scalable scalableFR = Scalable.proportional(Arrays.asList(60f, 30f, 10f),
+        scalableFR = Scalable.proportional(Arrays.asList(60f, 30f, 10f),
                 Arrays.asList(Scalable.onGenerator("FFR1AA1 _generator"), Scalable.onGenerator("FFR2AA1 _generator"), Scalable.onGenerator("FFR3AA1 _generator")));
-        networkAreasScalableMap.put(countryAreaFR, scalableFR);
-
-        Scalable scalableBE = Scalable.proportional(Arrays.asList(60f, 30f, 10f),
+        scalableBE = Scalable.proportional(Arrays.asList(60f, 30f, 10f),
                 Arrays.asList(Scalable.onGenerator("BBE1AA1 _generator"), Scalable.onGenerator("BBE3AA1 _generator"), Scalable.onGenerator("BBE2AA1 _generator")));
-        networkAreasScalableMap.put(countryAreaBE, scalableBE);
 
     }
 
     @Test
     public void testBalancedNetwork() {
+        List<BalanceComputationArea> areas = new ArrayList<>();
+        areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1000.));
+        areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, 1500.));
 
-        networkAreaNetPositionTargetMap = new HashMap<>();
-        networkAreaNetPositionTargetMap.put(countryAreaFR, 1000.);
-        networkAreaNetPositionTargetMap.put(countryAreaBE, 1500.);
-
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, networkAreaNetPositionTargetMap, networkAreasScalableMap, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
 
         BalanceComputationResult result = balanceComputation.run(testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
 
@@ -90,11 +82,11 @@ public class BalanceComputationImplDcTest {
 
     @Test
     public void testBalancedNetworkAfter1Scaling() {
-        networkAreaNetPositionTargetMap = new HashMap<>();
-        networkAreaNetPositionTargetMap.put(countryAreaFR, 1200.);
-        networkAreaNetPositionTargetMap.put(countryAreaBE, 1300.);
+        List<BalanceComputationArea> areas = new ArrayList<>();
+        areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1200.));
+        areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, 1300.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, networkAreaNetPositionTargetMap, networkAreasScalableMap, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
 
         BalanceComputationResult result = balanceComputation.run(testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
 
@@ -105,19 +97,16 @@ public class BalanceComputationImplDcTest {
 
     @Test
     public void testBalancesAdjustmentWithDifferentStateId() {
-        networkAreaNetPositionTargetMap = new HashMap<>();
-        networkAreaNetPositionTargetMap.put(countryAreaFR, 1100.);
-
+        String newStateId = "NewStateId";
         testNetwork1.getVariantManager().cloneVariant(testNetwork1.getVariantManager().getWorkingVariantId(), newStateId);
 
-        Map<NetworkArea, Scalable> networkAreasScalableMap1 = new HashMap<>();
         Scalable scalable1 = Scalable.onGenerator("FFR1AA1 _generator");
         Scalable scalable2 = Scalable.onGenerator("FFR2AA1 _generator");
         Scalable scalable3 = Scalable.onGenerator("FFR3AA1 _generator");
+        Scalable newScalableFr = Scalable.proportional(28.f, scalable1, 28f, scalable2, 44.f, scalable3);
+        List<BalanceComputationArea> areas = Collections.singletonList(new BalanceComputationArea("FR", countryAreaFR, newScalableFr, 1100.));
 
-        networkAreasScalableMap1.put(countryAreaFR, Scalable.proportional(28.f, scalable1, 28f, scalable2, 44.f, scalable3));
-
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, networkAreaNetPositionTargetMap, networkAreasScalableMap1, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
 
         BalanceComputationResult result = balanceComputation.run(newStateId, parameters).join();
 
@@ -133,12 +122,11 @@ public class BalanceComputationImplDcTest {
 
     @Test
     public void testUnBalancedNetwork() {
+        List<BalanceComputationArea> areas = new ArrayList<>();
+        areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1200.));
+        areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, 1500.));
 
-        networkAreaNetPositionTargetMap = new HashMap<>();
-        networkAreaNetPositionTargetMap.put(countryAreaFR, 1200.);
-        networkAreaNetPositionTargetMap.put(countryAreaBE, 1500.);
-
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, networkAreaNetPositionTargetMap, networkAreasScalableMap, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
 
         BalanceComputationResult result = balanceComputation.run(testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
 
