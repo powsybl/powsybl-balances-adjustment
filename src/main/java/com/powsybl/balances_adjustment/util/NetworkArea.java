@@ -34,7 +34,4 @@ public interface NetworkArea {
      * @return Sum of the flows leaving the area
      */
     double getNetPosition(Network network);
-
-    String getName();
-
 }
