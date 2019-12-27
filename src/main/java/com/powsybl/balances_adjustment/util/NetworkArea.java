@@ -7,31 +7,18 @@
 package com.powsybl.balances_adjustment.util;
 
 import com.powsybl.iidm.network.Network;
-import com.powsybl.iidm.network.VoltageLevel;
-
-import java.util.List;
 
 /**
  * NetworkArea is defined as a list of participating voltage levels and a list of border devices.
  *
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 public interface NetworkArea {
-
-    /**
-     * @return a list of voltage level
-     */
-    List<VoltageLevel> getAreaVoltageLevels(Network network);
-
-    /**
-     * @return Border devices are a subset of <code>Branch</code>, <code>HvdcLine</code>
-     * or <code>ThreeWindingsTransformer</code> objects
-     * that connect a voltage level of the area to a voltage level that is not part of the area.
-     */
-    List<BorderDevice> getBorderDevices(Network network);
-
     /**
      * @return Sum of the flows leaving the area
      */
     double getNetPosition(Network network);
+
+    void resetCache();
 }

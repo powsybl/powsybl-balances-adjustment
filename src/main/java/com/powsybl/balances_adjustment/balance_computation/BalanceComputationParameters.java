@@ -36,7 +36,7 @@ public class BalanceComputationParameters {
      * Constructor with default parameters
      */
     public BalanceComputationParameters() {
-        this(DEFAULT_THRESHOLD_NETPOSITION, DEFAULT_MAX_NUMBER_ITERATIONS, new LoadFlowParameters());
+        this(DEFAULT_THRESHOLD_NETPOSITION, DEFAULT_MAX_NUMBER_ITERATIONS, LoadFlowParameters.load());
     }
 
     /**
