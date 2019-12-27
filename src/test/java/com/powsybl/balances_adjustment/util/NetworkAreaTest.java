@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
@@ -39,24 +38,6 @@ public class NetworkAreaTest {
         voltageLevelsArea1 = new VoltageLevelsArea(voltageLevels1);
 
         countryAreaFR = new CountryArea(Country.FR);
-
-    }
-
-    private boolean checkSameList(List ls1, List ls2) {
-        return ls1.size() == ls2.size() && ls1.containsAll(ls2);
-    }
-
-    @Test
-    public void testGetAreaVoltageLevels() {
-
-        assertTrue(checkSameList(voltageLevelsArea1.getAreaVoltageLevels(testNetwork1), countryAreaFR.getAreaVoltageLevels(testNetwork1)));
-    }
-
-    @Test
-    public void testGetBorderDevices() {
-        List<BorderDevice> borderDevices1 = voltageLevelsArea1.getBorderDevices(testNetwork1);
-        List<BorderDevice> borderDevices2 = countryAreaFR.getBorderDevices(testNetwork1);
-        assertTrue(checkSameList(borderDevices1.stream().map(BorderDevice::getId).collect(Collectors.toList()), borderDevices2.stream().map(BorderDevice::getId).collect(Collectors.toList())));
 
     }
 

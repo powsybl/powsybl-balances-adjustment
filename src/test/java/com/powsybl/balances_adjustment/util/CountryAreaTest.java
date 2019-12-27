@@ -40,48 +40,6 @@ public class CountryAreaTest {
 
     }
 
-    private boolean checkSameList(List ls1, List ls2) {
-        return ls1.size() == ls2.size() && ls1.containsAll(ls2);
-    }
-
-    @Test
-    public void testGetAreaVoltageLevels() {
-        List<VoltageLevel> voltageLevels = testNetwork1.getVoltageLevelStream().filter(v -> v.getSubstation().getCountry().get().equals(Country.FR))
-                .collect(Collectors.toList());
-
-        List<VoltageLevel> voltageLevelsFR = countryAreaFR.getAreaVoltageLevels(testNetwork1);
-        assertTrue(checkSameList(voltageLevels, voltageLevelsFR));
-
-        voltageLevels = testNetwork1.getVoltageLevelStream().filter(v -> v.getSubstation().getCountry().get().equals(Country.BE))
-                .collect(Collectors.toList());
-        List<VoltageLevel> voltageLevelsBE = countryAreaBE.getAreaVoltageLevels(testNetwork1);
-        assertTrue(checkSameList(voltageLevels, voltageLevelsBE));
-
-    }
-
-    @Test
-    public void testGetBorderDevices() {
-        //Test BranchBorder
-        List<BorderDevice> borderDevicesES = countryAreaES.getBorderDevices(testNetwork1);
-        assertTrue(borderDevicesES.isEmpty());
-
-        List<BorderDevice> borderDevicesFR = countryAreaFR.getBorderDevices(testNetwork1);
-        assertEquals(2, borderDevicesFR.size());
-        assertEquals("FFR2AA1  DDE3AA1  1", borderDevicesFR.get(0).getId());
-        assertEquals("BBE2AA1  FFR3AA1  1", borderDevicesFR.get(1).getId());
-
-        // Test HVDCLines
-        assertEquals(1, testNetwork2.getHvdcLineCount());
-        List<BorderDevice> borderDevicesFR2 = countryAreaFR.getBorderDevices(testNetwork2);
-        assertEquals(1, borderDevicesFR2.size());
-        assertEquals("hvdcLineFrEs", borderDevicesFR2.get(0).getId());
-
-        List<BorderDevice> borderDevicesES2 = countryAreaES.getBorderDevices(testNetwork2);
-        assertEquals(1, borderDevicesES2.size());
-        assertEquals("hvdcLineFrEs", borderDevicesES2.get(0).getId());
-
-    }
-
     private Stream<Injection> getInjectionStream(Network network) {
         Stream returnStream = Stream.empty();
         returnStream = Stream.concat(network.getGeneratorStream(), returnStream);
@@ -109,6 +67,7 @@ public class CountryAreaTest {
         assertEquals(-getSumFlowCountry(testNetwork1, Country.FR), countryAreaFR.getNetPosition(testNetwork1), 1e-3);
 
         //Test network with HVDCLines
+        countryAreaFR.resetCache();
         assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation1().getTerminal().getP(), countryAreaFR.getNetPosition(testNetwork2), 1e-3);
         assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation2().getTerminal().getP(), countryAreaES.getNetPosition(testNetwork2), 1e-3);
     }

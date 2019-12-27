@@ -70,6 +70,9 @@ public class BalanceComputationImpl implements BalanceComputation {
 
         Map<BalanceComputationArea, Double> balanceOffsets = new HashMap<>();
 
+        // Step 0: reset all network areas cache
+        areas.forEach(area -> area.getNetPositionSupplier().resetCache());
+
         do {
             // Step 1: Perform the scaling
             for (Map.Entry<BalanceComputationArea, Double> entry : balanceOffsets.entrySet()) {
