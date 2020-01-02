@@ -16,13 +16,13 @@ import java.util.Objects;
  */
 public class BalanceComputationArea {
     private final String name;
-    private final NetworkArea netPositionSupplier;
+    private final NetworkArea networkArea;
     private final Scalable scalable;
     private final double targetNetPosition;
 
-    public BalanceComputationArea(String name, NetworkArea netPositionSupplier, Scalable scalable, double targetNetPosition) {
+    public BalanceComputationArea(String name, NetworkArea networkArea, Scalable scalable, double targetNetPosition) {
         this.name = Objects.requireNonNull(name);
-        this.netPositionSupplier = Objects.requireNonNull(netPositionSupplier);
+        this.networkArea = Objects.requireNonNull(networkArea);
         this.scalable = Objects.requireNonNull(scalable);
         this.targetNetPosition = Objects.requireNonNull(targetNetPosition);
     }
@@ -31,8 +31,8 @@ public class BalanceComputationArea {
         return name;
     }
 
-    public NetworkArea getNetPositionSupplier() {
-        return netPositionSupplier;
+    public NetworkArea getNetworkArea() {
+        return networkArea;
     }
 
     public Scalable getScalable() {

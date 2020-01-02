@@ -71,7 +71,7 @@ public class BalanceComputationImpl implements BalanceComputation {
         Map<BalanceComputationArea, Double> balanceOffsets = new HashMap<>();
 
         // Step 0: reset all network areas cache
-        areas.forEach(area -> area.getNetPositionSupplier().resetCache());
+        areas.forEach(area -> area.getNetworkArea().resetCache());
 
         do {
             // Step 1: Perform the scaling
@@ -95,7 +95,7 @@ public class BalanceComputationImpl implements BalanceComputation {
             // Step 3: Compute balance and mismatch for each area
             double mismatchesNorm = 0.0;
             for (BalanceComputationArea area : areas) {
-                NetworkArea na = area.getNetPositionSupplier();
+                NetworkArea na = area.getNetworkArea();
                 double target = area.getTargetNetPosition();
                 double balance = na.getNetPosition(network);
                 double oldMismatch = balanceOffsets.computeIfAbsent(area, k -> 0.0);
