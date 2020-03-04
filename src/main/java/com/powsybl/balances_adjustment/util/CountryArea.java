@@ -69,13 +69,13 @@ public class CountryArea implements NetworkArea {
     }
 
     private boolean isAreaBorder(DanglingLine danglingLine) {
-        Country country = danglingLine.getTerminal().getVoltageLevel().getSubstation().getCountry().orElse(null);
+        Country country = danglingLine.getTerminal().getVoltageLevel().getSubstation().getNullableCountry();
         return countries.contains(country);
     }
 
     private boolean isAreaBorder(Line line) {
-        Country countrySide1 = line.getTerminal1().getVoltageLevel().getSubstation().getCountry().orElse(null);
-        Country countrySide2 = line.getTerminal2().getVoltageLevel().getSubstation().getCountry().orElse(null);
+        Country countrySide1 = line.getTerminal1().getVoltageLevel().getSubstation().getNullableCountry();
+        Country countrySide2 = line.getTerminal2().getVoltageLevel().getSubstation().getNullableCountry();
         if (countrySide1 == null || countrySide2 == null) {
             return false;
         }
@@ -84,8 +84,8 @@ public class CountryArea implements NetworkArea {
     }
 
     private boolean isAreaBorder(HvdcLine hvdcLine) {
-        Country countrySide1 = hvdcLine.getConverterStation1().getTerminal().getVoltageLevel().getSubstation().getCountry().orElse(null);
-        Country countrySide2 = hvdcLine.getConverterStation2().getTerminal().getVoltageLevel().getSubstation().getCountry().orElse(null);
+        Country countrySide1 = hvdcLine.getConverterStation1().getTerminal().getVoltageLevel().getSubstation().getNullableCountry();
+        Country countrySide2 = hvdcLine.getConverterStation2().getTerminal().getVoltageLevel().getSubstation().getNullableCountry();
         if (countrySide1 == null || countrySide2 == null) {
             return false;
         }
@@ -101,13 +101,13 @@ public class CountryArea implements NetworkArea {
         double flowSide1 = line.getTerminal1().isConnected() && !Double.isNaN(line.getTerminal1().getP()) ? line.getTerminal1().getP() : 0;
         double flowSide2 = line.getTerminal2().isConnected() && !Double.isNaN(line.getTerminal2().getP()) ? line.getTerminal2().getP() : 0;
         double directFlow = (flowSide1 - flowSide2) / 2;
-        return countries.contains(line.getTerminal1().getVoltageLevel().getSubstation().getCountry().orElse(null)) ? directFlow : -directFlow;
+        return countries.contains(line.getTerminal1().getVoltageLevel().getSubstation().getNullableCountry()) ? directFlow : -directFlow;
     }
 
     private double getLeavingFlow(HvdcLine hvdcLine) {
         double flowSide1 = hvdcLine.getConverterStation1().getTerminal().isConnected() && !Double.isNaN(hvdcLine.getConverterStation1().getTerminal().getP()) ? hvdcLine.getConverterStation1().getTerminal().getP() : 0;
         double flowSide2 = hvdcLine.getConverterStation2().getTerminal().isConnected() && !Double.isNaN(hvdcLine.getConverterStation2().getTerminal().getP()) ? hvdcLine.getConverterStation2().getTerminal().getP() : 0;
         double directFlow = (flowSide1 - flowSide2) / 2;
-        return countries.contains(hvdcLine.getConverterStation1().getTerminal().getVoltageLevel().getSubstation().getCountry().orElse(null)) ? directFlow : -directFlow;
+        return countries.contains(hvdcLine.getConverterStation1().getTerminal().getVoltageLevel().getSubstation().getNullableCountry()) ? directFlow : -directFlow;
     }
 }
