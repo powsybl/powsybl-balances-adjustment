@@ -20,13 +20,14 @@ import java.util.stream.Collectors;
 public class CountryArea implements NetworkArea {
 
     private final List<Country> countries;
-
+    private Network network;
     private List<DanglingLine> danglingLineBordersCache;
     private List<Line> lineBordersCache;
     private List<HvdcLine> hvdcLineBordersCache;
 
-    public CountryArea(Country... countries) {
+    public CountryArea(Network network, Country... countries) {
         this.countries = Arrays.asList(countries);
+        this.network = network;
         resetCache();
     }
 
@@ -35,8 +36,8 @@ public class CountryArea implements NetworkArea {
     }
 
     @Override
-    public double getNetPosition(Network network) {
-        cacheAreaBorders(network);
+    public double getNetPosition() {
+        cacheAreaBorders();
         double areaNetPostion = 0.;
         for (DanglingLine danglingLine : danglingLineBordersCache) {
             areaNetPostion += getLeavingFlow(danglingLine);
@@ -57,7 +58,7 @@ public class CountryArea implements NetworkArea {
         hvdcLineBordersCache = new ArrayList<>();
     }
 
-    private void cacheAreaBorders(Network network) {
+    private void cacheAreaBorders() {
         if (danglingLineBordersCache.isEmpty()) {
             danglingLineBordersCache = network.getDanglingLineStream()
                     .filter(this::isAreaBorder)

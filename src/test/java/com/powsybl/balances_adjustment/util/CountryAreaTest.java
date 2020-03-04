@@ -26,17 +26,19 @@ public class CountryAreaTest {
     private Network testNetwork2;
 
     private CountryArea countryAreaFR;
-    private CountryArea countryAreaBE;
     private CountryArea countryAreaES;
+    private CountryArea otherCountryAreaFR;
+    private CountryArea otherCountryAreaES;
 
     @Before
     public void setUp() {
         testNetwork1 = Importers.loadNetwork("testCase.xiidm", CountryAreaTest.class.getResourceAsStream("/testCase.xiidm"));
         testNetwork2 = NetworkTestFactory.createNetwork();
 
-        countryAreaFR = new CountryArea(Country.FR);
-        countryAreaBE = new CountryArea(Country.BE);
-        countryAreaES = new CountryArea(Country.ES);
+        countryAreaFR = new CountryArea(testNetwork1, Country.FR);
+        countryAreaES = new CountryArea(testNetwork1, Country.ES);
+        otherCountryAreaFR = new CountryArea(testNetwork2, Country.FR);
+        otherCountryAreaES = new CountryArea(testNetwork2, Country.ES);
 
     }
 
@@ -62,13 +64,13 @@ public class CountryAreaTest {
     @Test
     public void testGetNetPosition() {
         //Test network with BranchBorder
-        assertEquals(0, countryAreaES.getNetPosition(testNetwork1), 1e-3);
+        assertEquals(0, countryAreaES.getNetPosition(), 1e-3);
 
-        assertEquals(-getSumFlowCountry(testNetwork1, Country.FR), countryAreaFR.getNetPosition(testNetwork1), 1e-3);
+        assertEquals(-getSumFlowCountry(testNetwork1, Country.FR), countryAreaFR.getNetPosition(), 1e-3);
 
         //Test network with HVDCLines
         countryAreaFR.resetCache();
-        assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation1().getTerminal().getP(), countryAreaFR.getNetPosition(testNetwork2), 1e-3);
-        assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation2().getTerminal().getP(), countryAreaES.getNetPosition(testNetwork2), 1e-3);
+        assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation1().getTerminal().getP(), otherCountryAreaFR.getNetPosition(), 1e-3);
+        assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation2().getTerminal().getP(), otherCountryAreaES.getNetPosition(), 1e-3);
     }
 }

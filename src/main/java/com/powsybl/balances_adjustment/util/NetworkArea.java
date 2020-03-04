@@ -6,8 +6,6 @@
  */
 package com.powsybl.balances_adjustment.util;
 
-import com.powsybl.iidm.network.Network;
-
 /**
  * NetworkArea defines an area for balances adjustment as a net position provider, calculaed on a Network object
  *
@@ -20,10 +18,9 @@ public interface NetworkArea {
      * Net position sign convention is positive when flows are leaving the area (export) and negative
      * when flows feed the area (import).
      *
-     * @param network Network on which to compute the net position
      * @return Sum of the flows leaving the area
      */
-    double getNetPosition(Network network);
+    double getNetPosition();
 
     /**
      * Utility method in the algorithm to allow cache mechanism to be reset, when changing

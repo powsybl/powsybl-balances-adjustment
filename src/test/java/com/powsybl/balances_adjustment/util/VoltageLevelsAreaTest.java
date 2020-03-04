@@ -35,7 +35,7 @@ public class VoltageLevelsAreaTest {
         voltageLevels = testNetwork.getVoltageLevelStream().filter(v -> v.getId().equals("FFR1AA1") || v.getId().equals("DDE3AA1"))
                 .collect(Collectors.toList());
 
-        voltageLevelsArea = new VoltageLevelsArea(voltageLevels);
+        voltageLevelsArea = new VoltageLevelsArea(testNetwork, voltageLevels);
 
     }
 
@@ -47,6 +47,6 @@ public class VoltageLevelsAreaTest {
         flows.add(testNetwork.getBranch("DDE1AA1  DDE3AA1  1").getTerminal2().getP());
         flows.add(testNetwork.getBranch("DDE2AA1  DDE3AA1  1").getTerminal2().getP());
 
-        assertEquals(flows.stream().mapToDouble(f -> f).sum(), voltageLevelsArea.getNetPosition(testNetwork), 1e-3);
+        assertEquals(flows.stream().mapToDouble(f -> f).sum(), voltageLevelsArea.getNetPosition(), 1e-3);
     }
 }

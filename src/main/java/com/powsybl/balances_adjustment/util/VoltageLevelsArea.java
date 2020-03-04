@@ -25,15 +25,17 @@ public class VoltageLevelsArea implements NetworkArea {
     private List<Branch> branchBordersCache;
     private List<ThreeWindingsTransformer> threeWindingsTransformerBordersCache;
     private List<HvdcLine> hvdcLineBordersCache;
+    private Network network;
 
-    public VoltageLevelsArea(List<VoltageLevel> areaVoltageLevels) {
+    public VoltageLevelsArea(Network network, List<VoltageLevel> areaVoltageLevels) {
         this.areaVoltageLevels = Objects.requireNonNull(areaVoltageLevels);
+        this.network = network;
         resetCache();
     }
 
     @Override
-    public double getNetPosition(Network network) {
-        cacheAreaBorders(network);
+    public double getNetPosition() {
+        cacheAreaBorders();
         double areaNetPostion = 0.;
         for (DanglingLine danglingLine : danglingLineBordersCache) {
             areaNetPostion += getLeavingFlow(danglingLine);
@@ -58,7 +60,7 @@ public class VoltageLevelsArea implements NetworkArea {
         hvdcLineBordersCache = new ArrayList<>();
     }
 
-    private void cacheAreaBorders(Network network) {
+    private void cacheAreaBorders() {
         if (danglingLineBordersCache.isEmpty()) {
             danglingLineBordersCache = network.getDanglingLineStream()
                     .filter(this::isAreaBorder)

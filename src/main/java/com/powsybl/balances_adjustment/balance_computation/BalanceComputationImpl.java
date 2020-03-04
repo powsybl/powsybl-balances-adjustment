@@ -97,7 +97,7 @@ public class BalanceComputationImpl implements BalanceComputation {
             for (BalanceComputationArea area : areas) {
                 NetworkArea na = area.getNetworkArea();
                 double target = area.getTargetNetPosition();
-                double balance = na.getNetPosition(network);
+                double balance = na.getNetPosition();
                 double oldMismatch = balanceOffsets.computeIfAbsent(area, k -> 0.0);
                 double mismatch = target - balance;
                 balanceOffsets.put(area, oldMismatch + mismatch);

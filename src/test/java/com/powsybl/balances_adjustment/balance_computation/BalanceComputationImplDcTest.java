@@ -45,8 +45,8 @@ public class BalanceComputationImplDcTest {
     public void setUp() {
         testNetwork1 = Importers.loadNetwork("testCase.xiidm", CountryAreaTest.class.getResourceAsStream("/testCase.xiidm"));
 
-        countryAreaFR = new CountryArea(Country.FR);
-        countryAreaBE = new CountryArea(Country.BE);
+        countryAreaFR = new CountryArea(testNetwork1, Country.FR);
+        countryAreaBE = new CountryArea(testNetwork1, Country.BE);
 
         computationManager = LocalComputationManager.getDefault();
 
@@ -113,10 +113,10 @@ public class BalanceComputationImplDcTest {
         assertEquals(BalanceComputationResult.Status.SUCCESS, result.getStatus());
         assertEquals(2, result.getIterationCount());
         // Check net position does not change with the initial state id after balances
-        assertEquals(1000., countryAreaFR.getNetPosition(testNetwork1), 1.);
+        assertEquals(1000., countryAreaFR.getNetPosition(), 1.);
         // Check target net position after balances with the new state id
         testNetwork1.getVariantManager().setWorkingVariant(newStateId);
-        assertEquals(1100., countryAreaFR.getNetPosition(testNetwork1), 1.);
+        assertEquals(1100., countryAreaFR.getNetPosition(), 1.);
 
     }
 
@@ -132,8 +132,8 @@ public class BalanceComputationImplDcTest {
 
         assertEquals(BalanceComputationResult.Status.FAILED, result.getStatus());
         assertEquals(5, result.getIterationCount());
-        assertEquals(1000, countryAreaFR.getNetPosition(testNetwork1), 1e-3);
-        assertEquals(1500, countryAreaBE.getNetPosition(testNetwork1), 1e-3);
+        assertEquals(1000, countryAreaFR.getNetPosition(), 1e-3);
+        assertEquals(1500, countryAreaBE.getNetPosition(), 1e-3);
 
     }
 }

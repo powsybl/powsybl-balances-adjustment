@@ -35,15 +35,15 @@ public class NetworkAreaTest {
         List<VoltageLevel> voltageLevels1 = testNetwork1.getVoltageLevelStream().filter(v -> v.getId().equals("FFR1AA1") || v.getId().equals("FFR3AA1"))
                 .collect(Collectors.toList());
 
-        voltageLevelsArea1 = new VoltageLevelsArea(voltageLevels1);
+        voltageLevelsArea1 = new VoltageLevelsArea(testNetwork1, voltageLevels1);
 
-        countryAreaFR = new CountryArea(Country.FR);
+        countryAreaFR = new CountryArea(testNetwork1, Country.FR);
 
     }
 
     @Test
     public void testGetNetPosition() {
-        assertEquals(countryAreaFR.getNetPosition(testNetwork1), voltageLevelsArea1.getNetPosition(testNetwork1), 1e-3);
+        assertEquals(countryAreaFR.getNetPosition(), voltageLevelsArea1.getNetPosition(), 1e-3);
     }
 
 }

@@ -40,7 +40,6 @@ public class BalanceComputationSimpleDcTest {
     private CountryArea countryAreaBE;
     private Scalable scalableFR;
     private Scalable scalableBE;
-
     private BalanceComputationParameters parameters;
     private BalanceComputationFactory balanceComputationFactory;
     private LoadFlow.Runner loadFlowRunner;
@@ -55,8 +54,8 @@ public class BalanceComputationSimpleDcTest {
     public void setUp() {
         simpleNetwork = Importers.loadNetwork("testSimpleNetwork.xiidm", CountryAreaTest.class.getResourceAsStream("/testSimpleNetwork.xiidm"));
 
-        countryAreaFR = new CountryArea(Country.FR);
-        countryAreaBE = new CountryArea(Country.BE);
+        countryAreaFR = new CountryArea(simpleNetwork, Country.FR);
+        countryAreaBE = new CountryArea(simpleNetwork, Country.BE);
 
         computationManager = LocalComputationManager.getDefault();
 
@@ -229,12 +228,12 @@ public class BalanceComputationSimpleDcTest {
         assertEquals(initialState, simpleNetwork.getVariantManager().getWorkingVariantId());
 
         loadFlowRunner.run(simpleNetwork, initialVariantNew, computationManager, new LoadFlowParameters());
-        assertEquals(1300, countryAreaFR.getNetPosition(simpleNetwork), 0.0001);
-        assertEquals(-1300, countryAreaBE.getNetPosition(simpleNetwork), 0.0001);
+        assertEquals(1300, countryAreaFR.getNetPosition(), 0.0001);
+        assertEquals(-1300, countryAreaBE.getNetPosition(), 0.0001);
 
         loadFlowRunner.run(simpleNetwork, initialState, computationManager, new LoadFlowParameters());
-        assertEquals(1200, countryAreaFR.getNetPosition(simpleNetwork), 0.0001);
-        assertEquals(-1200, countryAreaBE.getNetPosition(simpleNetwork), 0.0001);
+        assertEquals(1200, countryAreaFR.getNetPosition(), 0.0001);
+        assertEquals(-1200, countryAreaBE.getNetPosition(), 0.0001);
     }
 
     @Test
@@ -255,12 +254,12 @@ public class BalanceComputationSimpleDcTest {
         assertEquals(initialState, simpleNetwork.getVariantManager().getWorkingVariantId());
 
         loadFlowRunner.run(simpleNetwork, initialState, computationManager, new LoadFlowParameters());
-        assertEquals(1200, countryAreaFR.getNetPosition(simpleNetwork), 0.0001);
-        assertEquals(-1200, countryAreaBE.getNetPosition(simpleNetwork), 0.0001);
+        assertEquals(1200, countryAreaFR.getNetPosition(), 0.0001);
+        assertEquals(-1200, countryAreaBE.getNetPosition(), 0.0001);
 
         loadFlowRunner.run(simpleNetwork, initialVariantNew, computationManager, new LoadFlowParameters());
-        assertEquals(1200, countryAreaFR.getNetPosition(simpleNetwork), 0.0001);
-        assertEquals(-1200, countryAreaBE.getNetPosition(simpleNetwork), 0.0001);
+        assertEquals(1200, countryAreaFR.getNetPosition(), 0.0001);
+        assertEquals(-1200, countryAreaBE.getNetPosition(), 0.0001);
 
     }
 
