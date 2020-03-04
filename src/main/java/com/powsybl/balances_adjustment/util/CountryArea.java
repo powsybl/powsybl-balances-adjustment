@@ -38,11 +38,9 @@ public class CountryArea implements NetworkArea {
     @Override
     public double getNetPosition() {
         cacheAreaBorders();
-        double areaNetPostion = 0.;
-        areaNetPostion += danglingLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum();
-        areaNetPostion += lineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum();
-        areaNetPostion += hvdcLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum();
-        return areaNetPostion;
+        return danglingLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
+                + lineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
+                + hvdcLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum();
     }
 
     @Override
