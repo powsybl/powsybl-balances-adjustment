@@ -21,7 +21,7 @@ import java.util.List;
 public class BalanceComputationFactoryImpl implements BalanceComputationFactory {
 
     @Override
-    public BalanceComputation create(Network network, List<BalanceComputationArea> areas, LoadFlow.Runner loadFlowRunner, ComputationManager computationManager, int priority) {
+    public BalanceComputation create(Network network, List<BalanceComputationArea> areas, LoadFlow.Runner loadFlowRunner, ComputationManager computationManager) {
         return new BalanceComputationImpl(network, areas, computationManager, loadFlowRunner);
     }
 }

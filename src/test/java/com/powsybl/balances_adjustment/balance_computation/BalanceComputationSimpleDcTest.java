@@ -187,7 +187,7 @@ public class BalanceComputationSimpleDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1300.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, -1300.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager);
 
         BalanceComputationResult result = balanceComputation.run(simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
 
@@ -201,7 +201,7 @@ public class BalanceComputationSimpleDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1300.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, -1400.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager);
 
         BalanceComputationResult result = balanceComputation.run(simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
 
@@ -217,7 +217,7 @@ public class BalanceComputationSimpleDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1300.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, -1300.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager);
 
         String initialVariant = simpleNetwork.getVariantManager().getWorkingVariantId();
         simpleNetwork.getVariantManager().cloneVariant(initialVariant, initialVariantNew);
@@ -242,7 +242,7 @@ public class BalanceComputationSimpleDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1300.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, -1400.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager);
 
         String initialVariant = simpleNetwork.getVariantManager().getWorkingVariantId();
 

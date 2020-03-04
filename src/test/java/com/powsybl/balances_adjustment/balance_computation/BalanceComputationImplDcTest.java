@@ -72,7 +72,7 @@ public class BalanceComputationImplDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1000.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, 1500.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager);
 
         BalanceComputationResult result = balanceComputation.run(testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
 
@@ -86,7 +86,7 @@ public class BalanceComputationImplDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1200.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, 1300.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager);
 
         BalanceComputationResult result = balanceComputation.run(testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
 
@@ -106,7 +106,7 @@ public class BalanceComputationImplDcTest {
         Scalable newScalableFr = Scalable.proportional(28.f, scalable1, 28f, scalable2, 44.f, scalable3);
         List<BalanceComputationArea> areas = Collections.singletonList(new BalanceComputationArea("FR", countryAreaFR, newScalableFr, 1100.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager);
 
         BalanceComputationResult result = balanceComputation.run(newStateId, parameters).join();
 
@@ -126,7 +126,7 @@ public class BalanceComputationImplDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1200.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, 1500.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager);
 
         BalanceComputationResult result = balanceComputation.run(testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
 
