@@ -76,9 +76,6 @@ public class CountryArea implements NetworkArea {
     private boolean isAreaBorder(Line line) {
         Country countrySide1 = line.getTerminal1().getVoltageLevel().getSubstation().getNullableCountry();
         Country countrySide2 = line.getTerminal2().getVoltageLevel().getSubstation().getNullableCountry();
-        if (countrySide1 == null || countrySide2 == null) {
-            return false;
-        }
         return countries.contains(countrySide1) && !countries.contains(countrySide2) ||
                 !countries.contains(countrySide1) && countries.contains(countrySide2);
     }
@@ -86,9 +83,6 @@ public class CountryArea implements NetworkArea {
     private boolean isAreaBorder(HvdcLine hvdcLine) {
         Country countrySide1 = hvdcLine.getConverterStation1().getTerminal().getVoltageLevel().getSubstation().getNullableCountry();
         Country countrySide2 = hvdcLine.getConverterStation2().getTerminal().getVoltageLevel().getSubstation().getNullableCountry();
-        if (countrySide1 == null || countrySide2 == null) {
-            return false;
-        }
         return countries.contains(countrySide1) && !countries.contains(countrySide2) ||
                 !countries.contains(countrySide1) && countries.contains(countrySide2);
     }
