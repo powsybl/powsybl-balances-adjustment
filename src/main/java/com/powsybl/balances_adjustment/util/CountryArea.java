@@ -21,9 +21,9 @@ public class CountryArea implements NetworkArea {
 
     private final List<Country> countries;
     private Network network;
-    private List<DanglingLine> danglingLineBordersCache;
-    private List<Line> lineBordersCache;
-    private List<HvdcLine> hvdcLineBordersCache;
+    private final List<DanglingLine> danglingLineBordersCache = new ArrayList<>();
+    private final List<Line> lineBordersCache = new ArrayList<>();
+    private final List<HvdcLine> hvdcLineBordersCache = new ArrayList<>();
 
     public CountryArea(Network network, Country... countries) {
         this.countries = Arrays.asList(countries);
@@ -53,26 +53,26 @@ public class CountryArea implements NetworkArea {
 
     @Override
     public void resetCache() {
-        danglingLineBordersCache = new ArrayList<>();
-        lineBordersCache = new ArrayList<>();
-        hvdcLineBordersCache = new ArrayList<>();
+        danglingLineBordersCache.clear();
+        lineBordersCache.clear();
+        hvdcLineBordersCache.clear();
     }
 
     private void cacheAreaBorders() {
         if (danglingLineBordersCache.isEmpty()) {
-            danglingLineBordersCache = network.getDanglingLineStream()
+            danglingLineBordersCache.addAll(network.getDanglingLineStream()
                     .filter(this::isAreaBorder)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
         }
         if (lineBordersCache.isEmpty()) {
-            lineBordersCache = network.getLineStream()
+            lineBordersCache.addAll(network.getLineStream()
                     .filter(this::isAreaBorder)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
         }
         if (hvdcLineBordersCache.isEmpty()) {
-            hvdcLineBordersCache = network.getHvdcLineStream()
+            hvdcLineBordersCache.addAll(network.getHvdcLineStream()
                     .filter(this::isAreaBorder)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
         }
     }
 
