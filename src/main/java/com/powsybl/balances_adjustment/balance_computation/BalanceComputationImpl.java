@@ -82,7 +82,7 @@ public class BalanceComputationImpl implements BalanceComputation {
 
                 Scalable scalable = area.getScalable();
                 double done = scalable.scale(network, balanceOffsets.get(area));
-                LOGGER.debug("Scaling for area {}: asked={}, done={}", area.getName(), asked, done);
+                LOGGER.info("Scaling for area {}: asked={}, done={}", area.getName(), asked, done);
             }
 
             // Step 2: compute Loadflow
@@ -102,7 +102,7 @@ public class BalanceComputationImpl implements BalanceComputation {
                 double oldMismatch = balanceOffsets.computeIfAbsent(area, k -> 0.0);
                 double mismatch = target - balance;
                 balanceOffsets.put(area, oldMismatch + mismatch);
-                LOGGER.debug("Mistmatch for area {}: {} (target={}, balance={})", area.getName(), mismatch, target, balance);
+                LOGGER.info("Mismatch for area {}: {} (target={}, balance={})", area.getName(), mismatch, target, balance);
 
                 mismatchesNorm += mismatch * mismatch;
             }
