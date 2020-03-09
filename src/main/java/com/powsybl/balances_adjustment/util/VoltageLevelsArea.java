@@ -6,11 +6,11 @@
  */
 package com.powsybl.balances_adjustment.util;
 
-import com.powsybl.iidm.network.*;
+        import com.powsybl.iidm.network.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+        import java.util.ArrayList;
+        import java.util.List;
+        import java.util.stream.Collectors;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
@@ -45,20 +45,10 @@ public class VoltageLevelsArea implements NetworkArea {
 
     @Override
     public double getNetPosition() {
-        double areaNetPostion = 0.;
-        for (DanglingLine danglingLine : danglingLineBordersCache) {
-            areaNetPostion += getLeavingFlow(danglingLine);
-        }
-        for (Branch branch : branchBordersCache) {
-            areaNetPostion += getLeavingFlow(branch);
-        }
-        for (ThreeWindingsTransformer threeWindingsTransformer : threeWindingsTransformerBordersCache) {
-            areaNetPostion += getLeavingFlow(threeWindingsTransformer);
-        }
-        for (HvdcLine hvdcLine : hvdcLineBordersCache) {
-            areaNetPostion += getLeavingFlow(hvdcLine);
-        }
-        return areaNetPostion;
+        return danglingLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
+                + branchBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
+                + threeWindingsTransformerBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
+                + hvdcLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum();
     }
 
     private boolean isAreaBorder(DanglingLine danglingLine) {
