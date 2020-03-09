@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -33,20 +34,18 @@ import java.util.stream.Collectors;
  *
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
+ * @author Mathieu Bague {@literal <mathieu.bague at rte-france.com>}
  */
 public class BalanceComputationImpl implements BalanceComputation {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BalanceComputationImpl.class);
-
-    private final Network network;
 
     private final List<BalanceComputationArea> areas;
 
     private final ComputationManager computationManager;
     private final LoadFlow.Runner loadFlowRunner;
 
-    public BalanceComputationImpl(Network network, List<BalanceComputationArea> areas, ComputationManager computationManager, LoadFlow.Runner loadFlowRunner) {
-        this.network = Objects.requireNonNull(network);
+    public BalanceComputationImpl(List<BalanceComputationArea> areas, ComputationManager computationManager, LoadFlow.Runner loadFlowRunner) {
         this.areas = Objects.requireNonNull(areas);
         this.computationManager = Objects.requireNonNull(computationManager);
         this.loadFlowRunner = Objects.requireNonNull(loadFlowRunner);
@@ -56,7 +55,8 @@ public class BalanceComputationImpl implements BalanceComputation {
      * Run balances adjustment computation in several iterations
      */
     @Override
-    public CompletableFuture<BalanceComputationResult> run(String workingStateId, BalanceComputationParameters parameters) {
+    public CompletableFuture<BalanceComputationResult> run(Network network, String workingStateId, BalanceComputationParameters parameters) {
+        Objects.requireNonNull(network);
         Objects.requireNonNull(workingStateId);
         Objects.requireNonNull(parameters);
 
@@ -71,7 +71,8 @@ public class BalanceComputationImpl implements BalanceComputation {
         Map<BalanceComputationArea, Double> balanceOffsets = new HashMap<>();
 
         // Step 0: reset all network areas cache
-        areas.forEach(area -> area.getNetworkArea().resetCache());
+        Map<BalanceComputationArea, NetworkArea> networkAreas = areas.stream()
+                .collect(Collectors.toMap(Function.identity(), ba -> ba.getNetworkAreaFactory().create(network)));
 
         do {
             // Step 1: Perform the scaling
@@ -95,9 +96,9 @@ public class BalanceComputationImpl implements BalanceComputation {
             // Step 3: Compute balance and mismatch for each area
             double mismatchesNorm = 0.0;
             for (BalanceComputationArea area : areas) {
-                NetworkArea na = area.getNetworkArea();
+                NetworkArea na = networkAreas.get(area);
                 double target = area.getTargetNetPosition();
-                double balance = na.getNetPosition(network);
+                double balance = na.getNetPosition();
                 double oldMismatch = balanceOffsets.computeIfAbsent(area, k -> 0.0);
                 double mismatch = target - balance;
                 balanceOffsets.put(area, oldMismatch + mismatch);

@@ -9,25 +9,34 @@ package com.powsybl.balances_adjustment.util;
 import com.powsybl.iidm.network.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
+ * @author Mathieu Bague {@literal <mathieu.bague at rte-france.com>}
  */
 public class CountryArea implements NetworkArea {
 
-    private final List<Country> countries;
+    private final List<Country> countries = new ArrayList<>();
 
-    private List<DanglingLine> danglingLineBordersCache;
-    private List<Line> lineBordersCache;
-    private List<HvdcLine> hvdcLineBordersCache;
+    private final List<DanglingLine> danglingLineBordersCache;
+    private final List<Line> lineBordersCache;
+    private final List<HvdcLine> hvdcLineBordersCache;
 
-    public CountryArea(Country... countries) {
-        this.countries = Arrays.asList(countries);
-        resetCache();
+    public CountryArea(Network network, List<Country> countries) {
+        this.countries.addAll(countries);
+
+        danglingLineBordersCache = network.getDanglingLineStream()
+                .filter(this::isAreaBorder)
+                .collect(Collectors.toList());
+        lineBordersCache = network.getLineStream()
+                .filter(this::isAreaBorder)
+                .collect(Collectors.toList());
+        hvdcLineBordersCache = network.getHvdcLineStream()
+                .filter(this::isAreaBorder)
+                .collect(Collectors.toList());
     }
 
     public List<Country> getCountries() {
@@ -35,8 +44,7 @@ public class CountryArea implements NetworkArea {
     }
 
     @Override
-    public double getNetPosition(Network network) {
-        cacheAreaBorders(network);
+    public double getNetPosition() {
         double areaNetPostion = 0.;
         for (DanglingLine danglingLine : danglingLineBordersCache) {
             areaNetPostion += getLeavingFlow(danglingLine);
@@ -48,31 +56,6 @@ public class CountryArea implements NetworkArea {
             areaNetPostion += getLeavingFlow(hvdcLine);
         }
         return areaNetPostion;
-    }
-
-    @Override
-    public void resetCache() {
-        danglingLineBordersCache = new ArrayList<>();
-        lineBordersCache = new ArrayList<>();
-        hvdcLineBordersCache = new ArrayList<>();
-    }
-
-    private void cacheAreaBorders(Network network) {
-        if (danglingLineBordersCache.isEmpty()) {
-            danglingLineBordersCache = network.getDanglingLineStream()
-                    .filter(this::isAreaBorder)
-                    .collect(Collectors.toList());
-        }
-        if (lineBordersCache.isEmpty()) {
-            lineBordersCache = network.getLineStream()
-                    .filter(this::isAreaBorder)
-                    .collect(Collectors.toList());
-        }
-        if (hvdcLineBordersCache.isEmpty()) {
-            hvdcLineBordersCache = network.getHvdcLineStream()
-                    .filter(this::isAreaBorder)
-                    .collect(Collectors.toList());
-        }
     }
 
     private boolean isAreaBorder(DanglingLine danglingLine) {

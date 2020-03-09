@@ -7,22 +7,23 @@
 package com.powsybl.balances_adjustment.balance_computation;
 
 import com.powsybl.action.util.Scalable;
-import com.powsybl.balances_adjustment.util.NetworkArea;
+import com.powsybl.balances_adjustment.util.NetworkAreaFactory;
 
 import java.util.Objects;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
+ * @author Mathieu Bague {@literal <mathieu.bague at rte-france.com>}
  */
 public class BalanceComputationArea {
     private final String name;
-    private final NetworkArea networkArea;
+    private final NetworkAreaFactory networkAreaFactory;
     private final Scalable scalable;
     private final double targetNetPosition;
 
-    public BalanceComputationArea(String name, NetworkArea networkArea, Scalable scalable, double targetNetPosition) {
+    public BalanceComputationArea(String name, NetworkAreaFactory networkAreaFactory, Scalable scalable, double targetNetPosition) {
         this.name = Objects.requireNonNull(name);
-        this.networkArea = Objects.requireNonNull(networkArea);
+        this.networkAreaFactory = Objects.requireNonNull(networkAreaFactory);
         this.scalable = Objects.requireNonNull(scalable);
         this.targetNetPosition = Objects.requireNonNull(targetNetPosition);
     }
@@ -31,8 +32,8 @@ public class BalanceComputationArea {
         return name;
     }
 
-    public NetworkArea getNetworkArea() {
-        return networkArea;
+    public NetworkAreaFactory getNetworkAreaFactory() {
+        return networkAreaFactory;
     }
 
     public Scalable getScalable() {

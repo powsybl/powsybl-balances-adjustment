@@ -7,7 +7,7 @@
 package com.powsybl.balances_adjustment.balance_computation;
 
 import com.powsybl.action.util.Scalable;
-import com.powsybl.balances_adjustment.util.CountryArea;
+import com.powsybl.balances_adjustment.util.CountryAreaFactory;
 import com.powsybl.balances_adjustment.util.CountryAreaTest;
 import com.powsybl.computation.ComputationManager;
 import com.powsybl.computation.local.LocalComputationManager;
@@ -32,8 +32,8 @@ import static org.junit.Assert.assertEquals;
 public class BalanceComputationImplDcTest {
     private Network testNetwork1;
     private ComputationManager computationManager;
-    private CountryArea countryAreaFR;
-    private CountryArea countryAreaBE;
+    private CountryAreaFactory countryAreaFR;
+    private CountryAreaFactory countryAreaBE;
     private Scalable scalableFR;
     private Scalable scalableBE;
 
@@ -45,8 +45,8 @@ public class BalanceComputationImplDcTest {
     public void setUp() {
         testNetwork1 = Importers.loadNetwork("testCase.xiidm", CountryAreaTest.class.getResourceAsStream("/testCase.xiidm"));
 
-        countryAreaFR = new CountryArea(Country.FR);
-        countryAreaBE = new CountryArea(Country.BE);
+        countryAreaFR = new CountryAreaFactory(Country.FR);
+        countryAreaBE = new CountryAreaFactory(Country.BE);
 
         computationManager = LocalComputationManager.getDefault();
 
@@ -72,9 +72,9 @@ public class BalanceComputationImplDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1000.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, 1500.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(areas, loadFlowRunner, computationManager);
 
-        BalanceComputationResult result = balanceComputation.run(testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
+        BalanceComputationResult result = balanceComputation.run(testNetwork1, testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
 
         assertEquals(BalanceComputationResult.Status.SUCCESS, result.getStatus());
         assertEquals(1, result.getIterationCount());
@@ -86,9 +86,9 @@ public class BalanceComputationImplDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1200.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, 1300.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(areas, loadFlowRunner, computationManager);
 
-        BalanceComputationResult result = balanceComputation.run(testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
+        BalanceComputationResult result = balanceComputation.run(testNetwork1, testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
 
         assertEquals(BalanceComputationResult.Status.SUCCESS, result.getStatus());
         assertEquals(2, result.getIterationCount());
@@ -106,17 +106,17 @@ public class BalanceComputationImplDcTest {
         Scalable newScalableFr = Scalable.proportional(28.f, scalable1, 28f, scalable2, 44.f, scalable3);
         List<BalanceComputationArea> areas = Collections.singletonList(new BalanceComputationArea("FR", countryAreaFR, newScalableFr, 1100.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(areas, loadFlowRunner, computationManager);
 
-        BalanceComputationResult result = balanceComputation.run(newStateId, parameters).join();
+        BalanceComputationResult result = balanceComputation.run(testNetwork1, newStateId, parameters).join();
 
         assertEquals(BalanceComputationResult.Status.SUCCESS, result.getStatus());
         assertEquals(2, result.getIterationCount());
         // Check net position does not change with the initial state id after balances
-        assertEquals(1000., countryAreaFR.getNetPosition(testNetwork1), 1.);
+        assertEquals(1000., countryAreaFR.create(testNetwork1).getNetPosition(), 1.);
         // Check target net position after balances with the new state id
         testNetwork1.getVariantManager().setWorkingVariant(newStateId);
-        assertEquals(1100., countryAreaFR.getNetPosition(testNetwork1), 1.);
+        assertEquals(1100., countryAreaFR.create(testNetwork1).getNetPosition(), 1.);
 
     }
 
@@ -126,14 +126,14 @@ public class BalanceComputationImplDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1200.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, 1500.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(testNetwork1, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(areas, loadFlowRunner, computationManager);
 
-        BalanceComputationResult result = balanceComputation.run(testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
+        BalanceComputationResult result = balanceComputation.run(testNetwork1, testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
 
         assertEquals(BalanceComputationResult.Status.FAILED, result.getStatus());
         assertEquals(5, result.getIterationCount());
-        assertEquals(1000, countryAreaFR.getNetPosition(testNetwork1), 1e-3);
-        assertEquals(1500, countryAreaBE.getNetPosition(testNetwork1), 1e-3);
+        assertEquals(1000, countryAreaFR.create(testNetwork1).getNetPosition(), 1e-3);
+        assertEquals(1500, countryAreaBE.create(testNetwork1).getNetPosition(), 1e-3);
 
     }
 }

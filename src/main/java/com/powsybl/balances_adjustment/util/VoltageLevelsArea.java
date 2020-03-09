@@ -10,30 +10,41 @@ import com.powsybl.iidm.network.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
+ * @author Mathieu Bague {@literal <mathieu.bague at rte-france.com>}
  */
 public class VoltageLevelsArea implements NetworkArea {
 
-    private final List<VoltageLevel> areaVoltageLevels;
+    private final List<String> voltageLevelIds = new ArrayList<>();
 
-    private List<DanglingLine> danglingLineBordersCache;
-    private List<Branch> branchBordersCache;
-    private List<ThreeWindingsTransformer> threeWindingsTransformerBordersCache;
-    private List<HvdcLine> hvdcLineBordersCache;
+    private final List<DanglingLine> danglingLineBordersCache;
+    private final List<Branch> branchBordersCache;
+    private final List<ThreeWindingsTransformer> threeWindingsTransformerBordersCache;
+    private final List<HvdcLine> hvdcLineBordersCache;
 
-    public VoltageLevelsArea(List<VoltageLevel> areaVoltageLevels) {
-        this.areaVoltageLevels = Objects.requireNonNull(areaVoltageLevels);
-        resetCache();
+    public VoltageLevelsArea(Network network, List<String> voltageLevelIds) {
+        this.voltageLevelIds.addAll(voltageLevelIds);
+
+        danglingLineBordersCache = network.getDanglingLineStream()
+                .filter(this::isAreaBorder)
+                .collect(Collectors.toList());
+        branchBordersCache = network.getLineStream()
+                .filter(this::isAreaBorder)
+                .collect(Collectors.toList());
+        threeWindingsTransformerBordersCache = network.getThreeWindingsTransformerStream()
+                .filter(this::isAreaBorder)
+                .collect(Collectors.toList());
+        hvdcLineBordersCache = network.getHvdcLineStream()
+                .filter(this::isAreaBorder)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public double getNetPosition(Network network) {
-        cacheAreaBorders(network);
+    public double getNetPosition() {
         double areaNetPostion = 0.;
         for (DanglingLine danglingLine : danglingLineBordersCache) {
             areaNetPostion += getLeavingFlow(danglingLine);
@@ -50,95 +61,64 @@ public class VoltageLevelsArea implements NetworkArea {
         return areaNetPostion;
     }
 
-    @Override
-    public void resetCache() {
-        danglingLineBordersCache = new ArrayList<>();
-        branchBordersCache = new ArrayList<>();
-        threeWindingsTransformerBordersCache = new ArrayList<>();
-        hvdcLineBordersCache = new ArrayList<>();
-    }
-
-    private void cacheAreaBorders(Network network) {
-        if (danglingLineBordersCache.isEmpty()) {
-            danglingLineBordersCache = network.getDanglingLineStream()
-                    .filter(this::isAreaBorder)
-                    .collect(Collectors.toList());
-        }
-        if (branchBordersCache.isEmpty()) {
-            branchBordersCache = network.getLineStream()
-                    .filter(this::isAreaBorder)
-                    .collect(Collectors.toList());
-        }
-        if (threeWindingsTransformerBordersCache.isEmpty()) {
-            threeWindingsTransformerBordersCache = network.getThreeWindingsTransformerStream()
-                    .filter(this::isAreaBorder)
-                    .collect(Collectors.toList());
-        }
-        if (hvdcLineBordersCache.isEmpty()) {
-            hvdcLineBordersCache = network.getHvdcLineStream()
-                    .filter(this::isAreaBorder)
-                    .collect(Collectors.toList());
-        }
-    }
-
     private boolean isAreaBorder(DanglingLine danglingLine) {
-        VoltageLevel voltageLevel = danglingLine.getTerminal().getVoltageLevel();
-        return areaVoltageLevels.contains(voltageLevel);
+        String voltageLevel = danglingLine.getTerminal().getVoltageLevel().getId();
+        return voltageLevelIds.contains(voltageLevel);
     }
 
     private boolean isAreaBorder(Line line) {
-        VoltageLevel voltageLevelSide1 = line.getTerminal1().getVoltageLevel();
-        VoltageLevel voltageLevelSide2 = line.getTerminal2().getVoltageLevel();
-        return areaVoltageLevels.contains(voltageLevelSide1) && !areaVoltageLevels.contains(voltageLevelSide2) ||
-                !areaVoltageLevels.contains(voltageLevelSide1) && areaVoltageLevels.contains(voltageLevelSide2);
+        String voltageLevelSide1 = line.getTerminal1().getVoltageLevel().getId();
+        String voltageLevelSide2 = line.getTerminal2().getVoltageLevel().getId();
+        return voltageLevelIds.contains(voltageLevelSide1) && !voltageLevelIds.contains(voltageLevelSide2) ||
+                !voltageLevelIds.contains(voltageLevelSide1) && voltageLevelIds.contains(voltageLevelSide2);
     }
 
     private boolean isAreaBorder(ThreeWindingsTransformer threeWindingsTransformer) {
-        VoltageLevel voltageLevelSide1 = threeWindingsTransformer.getLeg1().getTerminal().getVoltageLevel();
-        VoltageLevel voltageLevelSide2 = threeWindingsTransformer.getLeg2().getTerminal().getVoltageLevel();
-        VoltageLevel voltageLevelSide3 = threeWindingsTransformer.getLeg3().getTerminal().getVoltageLevel();
-        boolean containsOne = areaVoltageLevels.contains(voltageLevelSide1) ||
-                areaVoltageLevels.contains(voltageLevelSide2) ||
-                areaVoltageLevels.contains(voltageLevelSide3);
-        boolean containsAll = areaVoltageLevels.contains(voltageLevelSide1) &&
-                areaVoltageLevels.contains(voltageLevelSide2) &&
-                areaVoltageLevels.contains(voltageLevelSide3);
+        String voltageLevelSide1 = threeWindingsTransformer.getLeg1().getTerminal().getVoltageLevel().getId();
+        String voltageLevelSide2 = threeWindingsTransformer.getLeg2().getTerminal().getVoltageLevel().getId();
+        String voltageLevelSide3 = threeWindingsTransformer.getLeg3().getTerminal().getVoltageLevel().getId();
+        boolean containsOne = voltageLevelIds.contains(voltageLevelSide1) ||
+                voltageLevelIds.contains(voltageLevelSide2) ||
+                voltageLevelIds.contains(voltageLevelSide3);
+        boolean containsAll = voltageLevelIds.contains(voltageLevelSide1) &&
+                voltageLevelIds.contains(voltageLevelSide2) &&
+                voltageLevelIds.contains(voltageLevelSide3);
         return containsOne && !containsAll;
     }
 
     private boolean isAreaBorder(HvdcLine hvdcLine) {
-        VoltageLevel voltageLevelSide1 = hvdcLine.getConverterStation1().getTerminal().getVoltageLevel();
-        VoltageLevel voltageLevelSide2 = hvdcLine.getConverterStation2().getTerminal().getVoltageLevel();
-        return areaVoltageLevels.contains(voltageLevelSide1) && !areaVoltageLevels.contains(voltageLevelSide2) ||
-                !areaVoltageLevels.contains(voltageLevelSide1) && areaVoltageLevels.contains(voltageLevelSide2);
+        String voltageLevelSide1 = hvdcLine.getConverterStation1().getTerminal().getVoltageLevel().getId();
+        String voltageLevelSide2 = hvdcLine.getConverterStation2().getTerminal().getVoltageLevel().getId();
+        return voltageLevelIds.contains(voltageLevelSide1) && !voltageLevelIds.contains(voltageLevelSide2) ||
+                !voltageLevelIds.contains(voltageLevelSide1) && voltageLevelIds.contains(voltageLevelSide2);
     }
 
     private double getLeavingFlow(DanglingLine danglingLine) {
         return danglingLine.getTerminal().isConnected() ? danglingLine.getTerminal().getP() : 0;
     }
 
-    private double getLeavingFlow(Branch branch) {
+    private double getLeavingFlow(Branch<?> branch) {
         double flowSide1 = branch.getTerminal1().isConnected() ? branch.getTerminal1().getP() : 0;
         double flowSide2 = branch.getTerminal2().isConnected() ? branch.getTerminal2().getP() : 0;
         double directFlow = (flowSide1 - flowSide2) / 2;
-        return areaVoltageLevels.contains(branch.getTerminal1().getVoltageLevel()) ? directFlow : -directFlow;
+        return voltageLevelIds.contains(branch.getTerminal1().getVoltageLevel().getId()) ? directFlow : -directFlow;
     }
 
     private double getLeavingFlow(HvdcLine hvdcLine) {
         double flowSide1 = hvdcLine.getConverterStation1().getTerminal().isConnected() ? hvdcLine.getConverterStation1().getTerminal().getP() : 0;
         double flowSide2 = hvdcLine.getConverterStation2().getTerminal().isConnected() ? hvdcLine.getConverterStation2().getTerminal().getP() : 0;
         double directFlow = (flowSide1 - flowSide2) / 2;
-        return areaVoltageLevels.contains(hvdcLine.getConverterStation1().getTerminal().getVoltageLevel()) ? directFlow : -directFlow;
+        return voltageLevelIds.contains(hvdcLine.getConverterStation1().getTerminal().getVoltageLevel().getId()) ? directFlow : -directFlow;
     }
 
     private double getLeavingFlow(ThreeWindingsTransformer threeWindingsTransformer) {
         double outsideFlow = 0;
         double insideFlow = 0;
         for (ThreeWindingsTransformer.Side side : ThreeWindingsTransformer.Side.values()) {
-            outsideFlow += !areaVoltageLevels.contains(threeWindingsTransformer.getTerminal(side).getVoltageLevel()) && threeWindingsTransformer.getTerminal(side).isConnected()
-                    ?  threeWindingsTransformer.getTerminal(side).getP() : 0;
-            insideFlow += areaVoltageLevels.contains(threeWindingsTransformer.getTerminal(side).getVoltageLevel()) && threeWindingsTransformer.getTerminal(side).isConnected()
-                    ?  threeWindingsTransformer.getTerminal(side).getP() : 0;
+            outsideFlow += !voltageLevelIds.contains(threeWindingsTransformer.getTerminal(side).getVoltageLevel().getId()) && threeWindingsTransformer.getTerminal(side).isConnected()
+                    ? threeWindingsTransformer.getTerminal(side).getP() : 0;
+            insideFlow += voltageLevelIds.contains(threeWindingsTransformer.getTerminal(side).getVoltageLevel().getId()) && threeWindingsTransformer.getTerminal(side).isConnected()
+                    ? threeWindingsTransformer.getTerminal(side).getP() : 0;
         }
         return (insideFlow - outsideFlow) / 2;
     }

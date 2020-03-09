@@ -25,18 +25,16 @@ public class CountryAreaTest {
     private Network testNetwork1;
     private Network testNetwork2;
 
-    private CountryArea countryAreaFR;
-    private CountryArea countryAreaBE;
-    private CountryArea countryAreaES;
+    private CountryAreaFactory countryAreaFR;
+    private CountryAreaFactory countryAreaES;
 
     @Before
     public void setUp() {
         testNetwork1 = Importers.loadNetwork("testCase.xiidm", CountryAreaTest.class.getResourceAsStream("/testCase.xiidm"));
         testNetwork2 = NetworkTestFactory.createNetwork();
 
-        countryAreaFR = new CountryArea(Country.FR);
-        countryAreaBE = new CountryArea(Country.BE);
-        countryAreaES = new CountryArea(Country.ES);
+        countryAreaFR = new CountryAreaFactory(Country.FR);
+        countryAreaES = new CountryAreaFactory(Country.ES);
 
     }
 
@@ -62,13 +60,12 @@ public class CountryAreaTest {
     @Test
     public void testGetNetPosition() {
         //Test network with BranchBorder
-        assertEquals(0, countryAreaES.getNetPosition(testNetwork1), 1e-3);
+        assertEquals(0, countryAreaES.create(testNetwork1).getNetPosition(), 1e-3);
 
-        assertEquals(-getSumFlowCountry(testNetwork1, Country.FR), countryAreaFR.getNetPosition(testNetwork1), 1e-3);
+        assertEquals(-getSumFlowCountry(testNetwork1, Country.FR), countryAreaFR.create(testNetwork1).getNetPosition(), 1e-3);
 
         //Test network with HVDCLines
-        countryAreaFR.resetCache();
-        assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation1().getTerminal().getP(), countryAreaFR.getNetPosition(testNetwork2), 1e-3);
-        assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation2().getTerminal().getP(), countryAreaES.getNetPosition(testNetwork2), 1e-3);
+        assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation1().getTerminal().getP(), countryAreaFR.create(testNetwork2).getNetPosition(), 1e-3);
+        assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation2().getTerminal().getP(), countryAreaES.create(testNetwork2).getNetPosition(), 1e-3);
     }
 }

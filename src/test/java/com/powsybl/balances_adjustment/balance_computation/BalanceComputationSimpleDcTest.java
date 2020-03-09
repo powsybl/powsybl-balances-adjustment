@@ -7,7 +7,7 @@
 package com.powsybl.balances_adjustment.balance_computation;
 
 import com.powsybl.action.util.Scalable;
-import com.powsybl.balances_adjustment.util.CountryArea;
+import com.powsybl.balances_adjustment.util.CountryAreaFactory;
 import com.powsybl.balances_adjustment.util.CountryAreaTest;
 import com.powsybl.computation.ComputationManager;
 import com.powsybl.computation.local.LocalComputationManager;
@@ -36,8 +36,8 @@ import static org.mockito.Mockito.doReturn;
 public class BalanceComputationSimpleDcTest {
     private Network simpleNetwork;
     private ComputationManager computationManager;
-    private CountryArea countryAreaFR;
-    private CountryArea countryAreaBE;
+    private CountryAreaFactory countryAreaFR;
+    private CountryAreaFactory countryAreaBE;
     private Scalable scalableFR;
     private Scalable scalableBE;
 
@@ -55,8 +55,8 @@ public class BalanceComputationSimpleDcTest {
     public void setUp() {
         simpleNetwork = Importers.loadNetwork("testSimpleNetwork.xiidm", CountryAreaTest.class.getResourceAsStream("/testSimpleNetwork.xiidm"));
 
-        countryAreaFR = new CountryArea(Country.FR);
-        countryAreaBE = new CountryArea(Country.BE);
+        countryAreaFR = new CountryAreaFactory(Country.FR);
+        countryAreaBE = new CountryAreaFactory(Country.BE);
 
         computationManager = LocalComputationManager.getDefault();
 
@@ -89,11 +89,11 @@ public class BalanceComputationSimpleDcTest {
 
         LoadFlow.Runner loadFlowRunnerMock = Mockito.mock(LoadFlow.Runner.class);
 
-        BalanceComputationImpl balanceComputation = Mockito.spy(new BalanceComputationImpl(simpleNetwork, areas, computationManager, loadFlowRunnerMock));
+        BalanceComputationImpl balanceComputation = Mockito.spy(new BalanceComputationImpl(areas, computationManager, loadFlowRunnerMock));
         LoadFlowResult loadFlowResult = new LoadFlowResultImpl(false, new HashMap<>(), "logs");
         doReturn(loadFlowResult).when(loadFlowRunnerMock).run(anyObject(), anyString(), anyObject(), anyObject());
 
-        BalanceComputationResult result = balanceComputation.run(simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
+        BalanceComputationResult result = balanceComputation.run(simpleNetwork, simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
 
         assertEquals(BalanceComputationResult.Status.FAILED, result.getStatus());
         assertEquals(0, result.getIterationCount());
@@ -131,9 +131,9 @@ public class BalanceComputationSimpleDcTest {
             }
         };
 
-        BalanceComputationImpl balanceComputation = new BalanceComputationImpl(simpleNetwork, areas, computationManager, new LoadFlow.Runner(loadFlowProviderMock));
+        BalanceComputationImpl balanceComputation = new BalanceComputationImpl(areas, computationManager, new LoadFlow.Runner(loadFlowProviderMock));
 
-        BalanceComputationResult result = balanceComputation.run(simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
+        BalanceComputationResult result = balanceComputation.run(simpleNetwork, simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
         assertEquals(BalanceComputationResult.Status.SUCCESS, result.getStatus());
         assertEquals(1, result.getIterationCount());
         assertTrue(result.getBalancedScalingMap().values().stream().allMatch(v -> v == 0.));
@@ -170,10 +170,10 @@ public class BalanceComputationSimpleDcTest {
             }
         };
 
-        BalanceComputationImpl balanceComputation = new BalanceComputationImpl(simpleNetwork, areas, computationManager, new LoadFlow.Runner(loadFlowProviderMock));
+        BalanceComputationImpl balanceComputation = new BalanceComputationImpl(areas, computationManager, new LoadFlow.Runner(loadFlowProviderMock));
         BalanceComputationImpl balanceComputationSpy = Mockito.spy(balanceComputation);
 
-        BalanceComputationResult result = balanceComputationSpy.run(simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
+        BalanceComputationResult result = balanceComputationSpy.run(simpleNetwork, simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
 
         assertEquals(BalanceComputationResult.Status.FAILED, result.getStatus());
         assertEquals(5, result.getIterationCount());
@@ -188,9 +188,9 @@ public class BalanceComputationSimpleDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1300.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, -1300.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(areas, loadFlowRunner, computationManager);
 
-        BalanceComputationResult result = balanceComputation.run(simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
+        BalanceComputationResult result = balanceComputation.run(simpleNetwork, simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
 
         assertEquals(BalanceComputationResult.Status.SUCCESS, result.getStatus());
         assertEquals(2, result.getIterationCount());
@@ -202,9 +202,9 @@ public class BalanceComputationSimpleDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1300.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, -1400.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(areas, loadFlowRunner, computationManager);
 
-        BalanceComputationResult result = balanceComputation.run(simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
+        BalanceComputationResult result = balanceComputation.run(simpleNetwork, simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
 
         assertEquals(BalanceComputationResult.Status.FAILED, result.getStatus());
         assertEquals(5, result.getIterationCount());
@@ -218,23 +218,23 @@ public class BalanceComputationSimpleDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1300.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, -1300.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(areas, loadFlowRunner, computationManager);
 
         String initialVariant = simpleNetwork.getVariantManager().getWorkingVariantId();
         simpleNetwork.getVariantManager().cloneVariant(initialVariant, initialVariantNew);
-        BalanceComputationResult result = balanceComputation.run(initialVariantNew, parameters).join();
+        BalanceComputationResult result = balanceComputation.run(simpleNetwork, initialVariantNew, parameters).join();
 
         assertEquals(BalanceComputationResult.Status.SUCCESS, result.getStatus());
         assertEquals(2, result.getIterationCount());
         assertEquals(initialState, simpleNetwork.getVariantManager().getWorkingVariantId());
 
         loadFlowRunner.run(simpleNetwork, initialVariantNew, computationManager, new LoadFlowParameters());
-        assertEquals(1300, countryAreaFR.getNetPosition(simpleNetwork), 0.0001);
-        assertEquals(-1300, countryAreaBE.getNetPosition(simpleNetwork), 0.0001);
+        assertEquals(1300, countryAreaFR.create(simpleNetwork).getNetPosition(), 0.0001);
+        assertEquals(-1300, countryAreaBE.create(simpleNetwork).getNetPosition(), 0.0001);
 
         loadFlowRunner.run(simpleNetwork, initialState, computationManager, new LoadFlowParameters());
-        assertEquals(1200, countryAreaFR.getNetPosition(simpleNetwork), 0.0001);
-        assertEquals(-1200, countryAreaBE.getNetPosition(simpleNetwork), 0.0001);
+        assertEquals(1200, countryAreaFR.create(simpleNetwork).getNetPosition(), 0.0001);
+        assertEquals(-1200, countryAreaBE.create(simpleNetwork).getNetPosition(), 0.0001);
     }
 
     @Test
@@ -243,24 +243,24 @@ public class BalanceComputationSimpleDcTest {
         areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1300.));
         areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, -1400.));
 
-        BalanceComputation balanceComputation = balanceComputationFactory.create(simpleNetwork, areas, loadFlowRunner, computationManager, 1);
+        BalanceComputation balanceComputation = balanceComputationFactory.create(areas, loadFlowRunner, computationManager);
 
         String initialVariant = simpleNetwork.getVariantManager().getWorkingVariantId();
 
         simpleNetwork.getVariantManager().cloneVariant(initialVariant, initialVariantNew);
-        BalanceComputationResult result = balanceComputation.run(initialVariantNew, parameters).join();
+        BalanceComputationResult result = balanceComputation.run(simpleNetwork, initialVariantNew, parameters).join();
 
         assertEquals(BalanceComputationResult.Status.FAILED, result.getStatus());
         assertEquals(5, result.getIterationCount());
         assertEquals(initialState, simpleNetwork.getVariantManager().getWorkingVariantId());
 
         loadFlowRunner.run(simpleNetwork, initialState, computationManager, new LoadFlowParameters());
-        assertEquals(1200, countryAreaFR.getNetPosition(simpleNetwork), 0.0001);
-        assertEquals(-1200, countryAreaBE.getNetPosition(simpleNetwork), 0.0001);
+        assertEquals(1200, countryAreaFR.create(simpleNetwork).getNetPosition(), 0.0001);
+        assertEquals(-1200, countryAreaBE.create(simpleNetwork).getNetPosition(), 0.0001);
 
         loadFlowRunner.run(simpleNetwork, initialVariantNew, computationManager, new LoadFlowParameters());
-        assertEquals(1200, countryAreaFR.getNetPosition(simpleNetwork), 0.0001);
-        assertEquals(-1200, countryAreaBE.getNetPosition(simpleNetwork), 0.0001);
+        assertEquals(1200, countryAreaFR.create(simpleNetwork).getNetPosition(), 0.0001);
+        assertEquals(-1200, countryAreaBE.create(simpleNetwork).getNetPosition(), 0.0001);
 
     }
 
