@@ -22,8 +22,8 @@ import java.util.Objects;
  */
 public class BalanceComputationParameters extends AbstractExtendable<BalanceComputationParameters> {
 
-    private static final double DEFAULT_THRESHOLD_NET_POSITION = 1;
-    private static final int DEFAULT_MAX_NUMBER_ITERATIONS = 5;
+    public static final double DEFAULT_THRESHOLD_NET_POSITION = 1;
+    public static final int DEFAULT_MAX_NUMBER_ITERATIONS = 5;
 
     /**
      * Threshold for comparing net positions (given in MW).
