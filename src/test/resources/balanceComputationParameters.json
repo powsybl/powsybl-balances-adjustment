@@ -1,6 +1,6 @@
 {
-  "maxNumberIterations": 11,
-  "thresholdNetPosition": 2,
+  "maxNumberIterations" : 11,
+  "thresholdNetPosition" : 2.0,
   "load-flow-parameters" : {
     "version" : "1.0",
     "voltageInitMode" : "DC_VALUES",

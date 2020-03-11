@@ -11,42 +11,24 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.google.auto.service.AutoService;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import com.powsybl.balances_adjustment.balance_computation.BalanceComputationParameters;
-import com.powsybl.commons.config.InMemoryPlatformConfig;
+import com.powsybl.commons.AbstractConverterTest;
 import com.powsybl.commons.extensions.AbstractExtension;
 import com.powsybl.loadflow.LoadFlowParameters;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
 
 import static org.junit.Assert.*;
 
 /**
  * @author Mohamed Ben Rejeb {@literal <mohamed.benrejeb at rte-france.com>}
  */
-public class JsonBalanceComputationParametersTest {
-    InMemoryPlatformConfig platformConfig;
-    FileSystem fileSystem;
-
-    @Before
-    public void setUp() {
-        fileSystem = Jimfs.newFileSystem(Configuration.unix());
-        platformConfig = new InMemoryPlatformConfig(fileSystem);
-    }
-
-    @After
-    public void closeFileSystem() throws Exception {
-        fileSystem.close();
-    }
+public class JsonBalanceComputationParametersTest extends AbstractConverterTest {
 
     @Test
-    public void testNoConfig() {
+    public void testDefaultBalanceComputationConfig() {
         BalanceComputationParameters parameters = new BalanceComputationParameters();
         BalanceComputationParameters.load();
         assertEquals(parameters.getMaxNumberIterations(), BalanceComputationParameters.DEFAULT_MAX_NUMBER_ITERATIONS);
@@ -81,6 +63,31 @@ public class JsonBalanceComputationParametersTest {
         assertEquals(1, parameters.getExtensions().size());
         assertNotNull(parameters.getExtension(DummyExtension.class));
         assertNotNull(parameters.getExtensionByName("dummy-extension"));
+    }
+
+    @Test
+    public void roundTrip() throws IOException {
+        BalanceComputationParameters parameters = JsonBalanceComputationParameters.read(getClass().getResourceAsStream("/balanceComputationParameters.json"));
+        roundTripTest(parameters, JsonBalanceComputationParameters::write, JsonBalanceComputationParameters::read, "/balanceComputationParameters.json");
+    }
+
+    @Test
+    public void writeExtension() throws IOException {
+        BalanceComputationParameters parameters = new BalanceComputationParameters();
+        parameters.addExtension(DummyExtension.class, new DummyExtension());
+        writeTest(parameters, JsonBalanceComputationParameters::write, AbstractConverterTest::compareTxt, "/balanceComputationParametersWithExtension.json");
+    }
+
+    @Test
+    public void updateLoadFlowParameters() {
+        BalanceComputationParameters parameters = new BalanceComputationParameters();
+        JsonBalanceComputationParameters.update(parameters, getClass().getResourceAsStream("/balanceComputationParameters.json"));
+
+        assertEquals("DC_VALUES", parameters.getLoadFlowParameters().getVoltageInitMode().toString());
+        assertTrue(parameters.getLoadFlowParameters().isTransformerVoltageControlOn());
+        assertTrue(parameters.getLoadFlowParameters().isPhaseShifterRegulationOn());
+        assertFalse(parameters.getLoadFlowParameters().isSpecificCompatibility());
+        assertFalse(parameters.getLoadFlowParameters().isNoGeneratorReactiveLimits());
     }
 
     static class DummyExtension extends AbstractExtension<BalanceComputationParameters> {

@@ -1,6 +1,6 @@
 {
-  "maxNumberIterations": 5,
-  "thresholdNetPosition": 1,
+  "maxNumberIterations" : 5,
+  "thresholdNetPosition" : 1.0,
   "load-flow-parameters" : {
     "version" : "1.0",
     "voltageInitMode" : "UNIFORM_VALUES",

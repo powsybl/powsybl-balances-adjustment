@@ -28,8 +28,8 @@ public class BalanceComputationParametersSerializer extends StdSerializer<Balanc
 
         jsonGenerator.writeStartObject();
 
-        jsonGenerator.writeStringField("maxNumberIterations", String.valueOf(parameters.getMaxNumberIterations()));
-        jsonGenerator.writeStringField("thresholdNetPosition", String.valueOf(parameters.getThresholdNetPosition()));
+        jsonGenerator.writeNumberField("maxNumberIterations", parameters.getMaxNumberIterations());
+        jsonGenerator.writeNumberField("thresholdNetPosition", parameters.getThresholdNetPosition());
         jsonGenerator.writeFieldName("load-flow-parameters");
         JsonLoadFlowParameters.serialize(parameters.getLoadFlowParameters(), jsonGenerator, serializerProvider);
 
