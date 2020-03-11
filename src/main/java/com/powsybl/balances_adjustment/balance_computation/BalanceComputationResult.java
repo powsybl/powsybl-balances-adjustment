@@ -6,14 +6,13 @@
  */
 package com.powsybl.balances_adjustment.balance_computation;
 
-import com.powsybl.balances_adjustment.util.NetworkArea;
-
 import java.beans.ConstructorProperties;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 public class BalanceComputationResult {
 
@@ -23,8 +22,8 @@ public class BalanceComputationResult {
     public enum Status {
         FAILED,
         SUCCESS
-
     }
+
     private final Status status;
 
     /**
@@ -33,9 +32,9 @@ public class BalanceComputationResult {
     private final int iterationCount;
 
     /**
-     * Values of scaling power applied for each network area to reach the target net position
+     * Values of scaling power applied for each area to reach the target net position
      */
-    private final Map<NetworkArea, Double> balancedScalingMap;
+    private final Map<BalanceComputationArea, Double> balancedScalingMap;
 
     @ConstructorProperties("status")
     public BalanceComputationResult(Status status) {
@@ -46,7 +45,7 @@ public class BalanceComputationResult {
         this(status, iterationCount, new HashMap<>());
     }
 
-    public BalanceComputationResult(Status status, int iterationCount, Map<NetworkArea, Double> scalingMap) {
+    public BalanceComputationResult(Status status, int iterationCount, Map<BalanceComputationArea, Double> scalingMap) {
         this.status = status;
         this.iterationCount = iterationCount;
         this.balancedScalingMap = scalingMap;
@@ -60,7 +59,7 @@ public class BalanceComputationResult {
         return iterationCount;
     }
 
-    public Map<NetworkArea, Double> getBalancedScalingMap() {
+    public Map<BalanceComputationArea, Double> getBalancedScalingMap() {
         return balancedScalingMap;
     }
 }

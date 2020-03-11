@@ -6,6 +6,8 @@
  */
 package com.powsybl.balances_adjustment.balance_computation;
 
+import com.powsybl.iidm.network.Network;
+
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -13,9 +15,10 @@ import java.util.concurrent.CompletableFuture;
  * Asynchronous computation is foreseen
  *
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
+ * @author Mathieu Bague {@literal <mathieu.bague at rte-france.com>}
  */
 public interface BalanceComputation {
 
-    CompletableFuture<BalanceComputationResult> run(String workingStateId, BalanceComputationParameters parameters);
+    CompletableFuture<BalanceComputationResult> run(Network network, String workingStateId, BalanceComputationParameters parameters);
 
 }

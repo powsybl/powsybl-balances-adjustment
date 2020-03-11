@@ -75,8 +75,8 @@
             **/generated/**/*
         </sonar.exclusions>
 
-        <powsybl.core.version>3.0.0</powsybl.core.version>
-        <powsybl.open-loadflow.version>0.1.0</powsybl.open-loadflow.version>
+        <powsybl.core.version>3.2.0</powsybl.core.version>
+        <powsybl.open-loadflow.version>0.2.0</powsybl.open-loadflow.version>
 
     </properties>
 
@@ -225,6 +225,13 @@
                                     <goal>prepare-agent</goal>
                                 </goals>
                             </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
                         </executions>
                     </plugin>
                 </plugins>
@@ -367,6 +374,14 @@
             <version>${powsybl.core.version}</version>
         </dependency>
 
+        <!-- Runtime dependencies -->
+        <dependency>
+            <groupId>com.powsybl</groupId>
+            <artifactId>powsybl-iidm-impl</artifactId>
+            <version>${powsybl.core.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>com.powsybl</groupId>
@@ -377,12 +392,6 @@
         <dependency>
             <groupId>com.powsybl</groupId>
             <artifactId>powsybl-ucte-converter</artifactId>
-            <version>${powsybl.core.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.powsybl</groupId>
-            <artifactId>powsybl-iidm-impl</artifactId>
             <version>${powsybl.core.version}</version>
             <scope>test</scope>
         </dependency>

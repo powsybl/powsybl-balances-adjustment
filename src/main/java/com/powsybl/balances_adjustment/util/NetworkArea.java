@@ -6,35 +6,20 @@
  */
 package com.powsybl.balances_adjustment.util;
 
-import com.powsybl.iidm.network.Network;
-import com.powsybl.iidm.network.VoltageLevel;
-
-import java.util.List;
-
 /**
- * NetworkArea is defined as a list of participating voltage levels and a list of border devices.
+ * NetworkArea defines an area for balances adjustment as a net position provider, calculated on a Network object
  *
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
+ * @author Mathieu Bague {@literal <mathieu.bague at rte-france.com>}
  */
 public interface NetworkArea {
-
     /**
-     * @return a list of voltage level
-     */
-    List<VoltageLevel> getAreaVoltageLevels(Network network);
-
-    /**
-     * @return Border devices are a subset of <code>Branch</code>, <code>HvdcLine</code>
-     * or <code>ThreeWindingsTransformer</code> objects
-     * that connect a voltage level of the area to a voltage level that is not part of the area.
-     */
-    List<BorderDevice> getBorderDevices(Network network);
-
-    /**
+     * Computes the net position of the area on a given network object.
+     * Net position sign convention is positive when flows are leaving the area (export) and negative
+     * when flows feed the area (import).
+     *
      * @return Sum of the flows leaving the area
      */
-    double getNetPosition(Network network);
-
-    String getName();
-
+    double getNetPosition();
 }
