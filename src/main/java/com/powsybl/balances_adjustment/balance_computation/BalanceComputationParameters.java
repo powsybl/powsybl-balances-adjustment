@@ -58,7 +58,7 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
      *
      * @param <E> The extension class
      */
-    public interface ConfigLoader<E extends Extension<BalanceComputationParameters>> extends ExtensionConfigLoader<BalanceComputationParameters, E> {
+    public static interface ConfigLoader<E extends Extension<BalanceComputationParameters>> extends ExtensionConfigLoader<BalanceComputationParameters, E> {
     }
 
     private static final Supplier<ExtensionProviders<ConfigLoader>> SUPPLIER =

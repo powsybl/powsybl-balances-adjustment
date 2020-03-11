@@ -6,16 +6,23 @@
  */
 package com.powsybl.balances_adjustment.balance_computation.json_parameters;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.google.auto.service.AutoService;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.powsybl.balances_adjustment.balance_computation.BalanceComputationParameters;
 import com.powsybl.commons.config.InMemoryPlatformConfig;
+import com.powsybl.commons.extensions.AbstractExtension;
 import com.powsybl.loadflow.LoadFlowParameters;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
 
 import static org.junit.Assert.*;
@@ -66,6 +73,55 @@ public class JsonBalanceComputationParametersTest {
         assertTrue(actualLoadflowParams.isPhaseShifterRegulationOn());
         assertFalse(actualLoadflowParams.isNoGeneratorReactiveLimits());
         assertFalse(actualLoadflowParams.isSpecificCompatibility());
+    }
 
+    @Test
+    public void readExtension() throws IOException {
+        BalanceComputationParameters parameters = JsonBalanceComputationParameters.read(getClass().getResourceAsStream("/balanceComputationParametersWithExtension.json"));
+        assertEquals(1, parameters.getExtensions().size());
+        assertNotNull(parameters.getExtension(DummyExtension.class));
+        assertNotNull(parameters.getExtensionByName("dummy-extension"));
+    }
+
+    static class DummyExtension extends AbstractExtension<BalanceComputationParameters> {
+
+        DummyExtension() {
+            super();
+        }
+
+        @Override
+        public String getName() {
+            return "dummy-extension";
+        }
+    }
+
+    @AutoService(JsonBalanceComputationParameters.ExtensionSerializer.class)
+    public static class DummySerializer implements JsonBalanceComputationParameters.ExtensionSerializer<DummyExtension> {
+
+        @Override
+        public void serialize(DummyExtension extension, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeStartObject();
+            jsonGenerator.writeEndObject();
+        }
+
+        @Override
+        public DummyExtension deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+            return new DummyExtension();
+        }
+
+        @Override
+        public String getExtensionName() {
+            return "dummy-extension";
+        }
+
+        @Override
+        public String getCategoryName() {
+            return "balance-computation-parameters";
+        }
+
+        @Override
+        public Class<? super DummyExtension> getExtensionClass() {
+            return DummyExtension.class;
+        }
     }
 }

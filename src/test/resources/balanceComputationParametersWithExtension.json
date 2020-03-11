@@ -1,0 +1,15 @@
+{
+  "maxNumberIterations": 5,
+  "thresholdNetPosition": 1,
+  "load-flow-parameters" : {
+    "version" : "1.0",
+    "voltageInitMode" : "UNIFORM_VALUES",
+    "transformerVoltageControlOn" : false,
+    "phaseShifterRegulationOn" : false,
+    "noGeneratorReactiveLimits" : false,
+    "specificCompatibility" : false
+  },
+  "extensions" : {
+    "dummy-extension" : { }
+  }
+}
