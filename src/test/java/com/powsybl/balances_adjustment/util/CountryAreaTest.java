@@ -30,7 +30,7 @@ public class CountryAreaTest {
 
     @Before
     public void setUp() {
-        testNetwork1 = Importers.loadNetwork("testCase.xiidm", CountryAreaTest.class.getResourceAsStream("/testCase.xiidm"));
+        testNetwork1 = Importers.loadNetwork("testCase.xiidm", getClass().getResourceAsStream("/testCase.xiidm"));
         testNetwork2 = NetworkTestFactory.createNetwork();
 
         countryAreaFR = new CountryAreaFactory(Country.FR);
@@ -67,5 +67,12 @@ public class CountryAreaTest {
         //Test network with HVDCLines
         assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation1().getTerminal().getP(), countryAreaFR.create(testNetwork2).getNetPosition(), 1e-3);
         assertEquals(testNetwork2.getHvdcLine("hvdcLineFrEs").getConverterStation2().getTerminal().getP(), countryAreaES.create(testNetwork2).getNetPosition(), 1e-3);
+    }
+
+    @Test
+    public void testSpecialDevices() {
+        Network network = Importers.loadNetwork("testCaseSpecialDevices.xiidm", getClass().getResourceAsStream("/testCaseSpecialDevices.xiidm"));
+        assertEquals(100, countryAreaFR.create(network).getNetPosition(), 1e-3);
+        assertEquals(-100, countryAreaES.create(network).getNetPosition(), 1e-3);
     }
 }
