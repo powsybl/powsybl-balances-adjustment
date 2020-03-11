@@ -43,4 +43,19 @@ public class VoltageLevelsAreaTest {
 
         assertEquals(flows.stream().mapToDouble(f -> f).sum(), voltageLevelsArea.create(testNetwork).getNetPosition(), 1e-3);
     }
+
+    @Test
+    public void testSpecialDevices() {
+        Network network = Importers.loadNetwork("testCaseSpecialDevices.xiidm", getClass().getResourceAsStream("/testCaseSpecialDevices.xiidm"));
+
+        NetworkAreaFactory test3wtFactory = new VoltageLevelsAreaFactory("VOLTAGE_LEVEL_FR_225KV");
+        assertEquals(0, test3wtFactory.create(network).getNetPosition(), 1e-3);
+
+        NetworkAreaFactory testHvdcFactory = new VoltageLevelsAreaFactory("VOLTAGE_LEVEL_FR_225KV", "VOLTAGE_LEVEL_FR_400KV");
+        assertEquals(100, testHvdcFactory.create(network).getNetPosition(), 1e-3);
+
+        NetworkAreaFactory test400kVFactory = new VoltageLevelsAreaFactory("VOLTAGE_LEVEL_FR_400KV", "VOLTAGE_LEVEL_BE_400KV");
+        assertEquals(100, test400kVFactory.create(network).getNetPosition(), 1e-3);
+
+    }
 }
