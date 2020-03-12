@@ -49,8 +49,22 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
      * @param maxNumberIterations Maximum iteration number for balances adjustment
      */
     public BalanceComputationParameters(double threshold, int maxNumberIterations) {
-        this.thresholdNetPosition = threshold;
-        this.maxNumberIterations = maxNumberIterations;
+        this.thresholdNetPosition = checkThresholdNetPosition(threshold);
+        this.maxNumberIterations = checkMaxNumberIterations(maxNumberIterations);
+    }
+
+    private static final double checkThresholdNetPosition(double threshold) {
+        if (threshold < 0) {
+            throw new IllegalArgumentException("Threshold must be positive");
+        }
+        return threshold;
+    }
+
+    private static final int checkMaxNumberIterations(int maxNumberIterations) {
+        if (maxNumberIterations < 0) {
+            throw new IllegalArgumentException("The maximum number of iterations must be positive");
+        }
+        return maxNumberIterations;
     }
 
     /**
@@ -106,7 +120,7 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
     }
 
     public BalanceComputationParameters setThresholdNetPosition(double thresholdNetPosition) {
-        this.thresholdNetPosition = thresholdNetPosition;
+        this.thresholdNetPosition = checkThresholdNetPosition(thresholdNetPosition);
         return this;
     }
 
@@ -115,7 +129,7 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
     }
 
     public BalanceComputationParameters setMaxNumberIterations(int maxNumberIterations) {
-        this.maxNumberIterations = maxNumberIterations;
+        this.maxNumberIterations = checkMaxNumberIterations(maxNumberIterations);
         return this;
     }
 }
