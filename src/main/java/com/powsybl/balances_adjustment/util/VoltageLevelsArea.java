@@ -6,11 +6,11 @@
  */
 package com.powsybl.balances_adjustment.util;
 
-        import com.powsybl.iidm.network.*;
+import com.powsybl.iidm.network.*;
 
-        import java.util.ArrayList;
-        import java.util.List;
-        import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
