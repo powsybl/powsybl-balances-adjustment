@@ -373,6 +373,11 @@
             <artifactId>powsybl-action-util</artifactId>
             <version>${powsybl.core.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.powsybl</groupId>
+            <artifactId>powsybl-commons</artifactId>
+            <version>${powsybl.core.version}</version>
+        </dependency>
 
         <!-- Runtime dependencies -->
         <dependency>
@@ -423,6 +428,13 @@
             <groupId>com.powsybl</groupId>
             <artifactId>powsybl-open-loadflow</artifactId>
             <version>${powsybl.open-loadflow.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.powsybl</groupId>
+            <artifactId>powsybl-commons</artifactId>
+            <version>${powsybl.core.version}</version>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
     </dependencies>
