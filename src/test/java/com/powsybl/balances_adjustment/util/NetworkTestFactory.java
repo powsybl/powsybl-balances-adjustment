@@ -242,7 +242,7 @@ public final class NetworkTestFactory {
                 .setR(5.0)
                 .setConvertersMode(HvdcLine.ConvertersMode.SIDE_1_INVERTER_SIDE_2_RECTIFIER)
                 .setNominalV(440.0)
-                .setMaxP(-50.0)
+                .setMaxP(50.0)
                 .setActivePowerSetpoint(20.0)
                 .setConverterStationId1("CFr1A")
                 .setConverterStationId2("CEs1A")

@@ -54,7 +54,7 @@ public class JsonBalanceComputationParametersTest extends AbstractConverterTest 
         assertTrue(actualLoadflowParams.isTransformerVoltageControlOn());
         assertTrue(actualLoadflowParams.isPhaseShifterRegulationOn());
         assertFalse(actualLoadflowParams.isNoGeneratorReactiveLimits());
-        assertFalse(actualLoadflowParams.isSpecificCompatibility());
+        assertFalse(actualLoadflowParams.isT2wtSplitShuntAdmittance());
     }
 
     @Test
@@ -86,7 +86,7 @@ public class JsonBalanceComputationParametersTest extends AbstractConverterTest 
         assertEquals("DC_VALUES", parameters.getLoadFlowParameters().getVoltageInitMode().toString());
         assertTrue(parameters.getLoadFlowParameters().isTransformerVoltageControlOn());
         assertTrue(parameters.getLoadFlowParameters().isPhaseShifterRegulationOn());
-        assertFalse(parameters.getLoadFlowParameters().isSpecificCompatibility());
+        assertFalse(parameters.getLoadFlowParameters().isT2wtSplitShuntAdmittance());
         assertFalse(parameters.getLoadFlowParameters().isNoGeneratorReactiveLimits());
     }
 
