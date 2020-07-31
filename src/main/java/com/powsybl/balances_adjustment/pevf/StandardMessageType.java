@@ -11,6 +11,8 @@ package com.powsybl.balances_adjustment.pevf;
  * The coded type of a document. The message type describes the principal characteristic of a document.
  * This enumeration is used in the XML instances based on IEC 62325.
  *
+ *  https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
+ *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
 public enum StandardMessageType {

@@ -8,26 +8,27 @@ package com.powsybl.balances_adjustment.pevf;
 
 /**
  * Pan European Verification Function.
- * Indicates the nature of process that the document addresses.
+ * Codification scheme used to identify the coding scheme used for the set of coded values to identify specific objects.
  *
- *  https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
+ * https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public enum StandardProcessType {
-
+public enum StandardCodingSchemeType {
     /**
-     * The information provided concerns a day ahead process.
+     * EIC.
+     * The coding scheme is the Energy Identification Coding Scheme (EIC), maintained by ENTSO-E.
      */
-    A01("Day ahead"),
+    A01("EIC"),
     /**
-     * The information provided concerns an intraday ahead process.
+     * CGM.
+     * The coding scheme used for Common Grid Model Exchange Standard (CGMES).
      */
-    A18("Total intraday");
+    A02("CGM");
 
     private final String description;
 
-    StandardProcessType(String description) {
+    StandardCodingSchemeType(String description) {
         this.description = description;
     }
 

@@ -8,26 +8,26 @@ package com.powsybl.balances_adjustment.pevf;
 
 /**
  * Pan European Verification Function.
- * Indicates the nature of process that the document addresses.
+ * The condition or position of an object with regard to its standing.
  *
- *  https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
+ * https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public enum StandardProcessType {
+public enum StandardStatusType {
 
     /**
-     * The information provided concerns a day ahead process.
+     * The document is in a non finalized state.
      */
-    A01("Day ahead"),
+    A01("Intermediate"),
     /**
-     * The information provided concerns an intraday ahead process.
+     * The document is in a definitive state.
      */
-    A18("Total intraday");
+    A02("Final");
 
     private final String description;
 
-    StandardProcessType(String description) {
+    StandardStatusType(String description) {
         this.description = description;
     }
 

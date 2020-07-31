@@ -8,26 +8,29 @@ package com.powsybl.balances_adjustment.pevf;
 
 /**
  * Pan European Verification Function.
- * Indicates the nature of process that the document addresses.
+ * Identification of the role played by a party.
  *
  *  https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public enum StandardProcessType {
-
+public enum StandardRoleType {
     /**
-     * The information provided concerns a day ahead process.
+     * Market information aggregator.
+     * Refer to role model definitions in the ENTSO-E Harmonised Role Model Document.
+     * A party that collects information from different sources and assembles  it to provide a summary of the market.
      */
-    A01("Day ahead"),
+    A32("Market information aggregator"),
     /**
-     * The information provided concerns an intraday ahead process.
+     * Information receiver.
+     * Refer to role model definitions in the ENTSO-E Harmonised Role Model Document.
+     * A party, not necessarily a market participant, which receives information about the market.
      */
-    A18("Total intraday");
+    A33("Information receiver");
 
     private final String description;
 
-    StandardProcessType(String description) {
+    StandardRoleType(String description) {
         this.description = description;
     }
 
