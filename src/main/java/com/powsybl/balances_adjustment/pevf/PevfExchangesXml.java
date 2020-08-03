@@ -8,6 +8,9 @@ package com.powsybl.balances_adjustment.pevf;
 
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.commons.xml.XmlUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.time.ZonedDateTime;
@@ -18,6 +21,8 @@ import java.time.ZonedDateTime;
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
 public final class PevfExchangesXml {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PevfExchangesXml.class);
 
     private static final String ROOT_ELEMENT_NAME = "ReportingInformation_MarketDocument";
     private static final String MRID_ELEMENT_NAME = "mRID";
@@ -43,92 +48,86 @@ public final class PevfExchangesXml {
     public static void read(PevfExchanges pevfExchanges, XMLStreamReader reader) throws XMLStreamException {
         XmlUtil.readUntilEndElementWithDepth(ROOT_ELEMENT_NAME, reader,  (int depth) -> {
             switch (reader.getLocalName()) {
-                case MRID_ELEMENT_NAME: {
+                case MRID_ELEMENT_NAME:
                     switch (depth) {
-                        case 1: {
+                        case 1:
                             String mRID = reader.getElementText();
                             pevfExchanges.setMRId(mRID);
                             break;
-                        }
-                        case 2: {
+                        case 2:
                             // New TimeSeries
-                            String mRID = reader.getElementText();
-                            //pevfExchanges.addTimeSeries(new com.powsybl.timeseries.TimeSeries());
                             break;
-                        }
                         default:
-                            throw new PowsyblException("Unexpected value: " + depth);
+                            throw new PowsyblException("Unexpected depth value: " + depth);
                     }
                     break;
-                }
-                case REVISION_NUMBER_ELEMENT_NAME: {
+                case REVISION_NUMBER_ELEMENT_NAME:
                     String revisionNumber = reader.getElementText();
                     pevfExchanges.setRevisionNumber(Integer.parseInt(revisionNumber));
                     break;
-                }
-                case TYPE_ELEMENT_NAME: {
+
+                case TYPE_ELEMENT_NAME:
                     String type = reader.getElementText();
                     pevfExchanges.setType(StandardMessageType.valueOf(type));
                     break;
-                }
-                case PROCESS_TYPE_ELEMENT_NAME: {
+
+                case PROCESS_TYPE_ELEMENT_NAME:
                     String processType = reader.getElementText();
                     pevfExchanges.setProcessType(StandardProcessType.valueOf(processType));
                     break;
-                }
-                case SENDER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MRID_ELEMENT_NAME: {
-                    String codingScheme = reader.getAttributeValue(null, CODING_SCHEME_ELEMENT_NAME);
-                    pevfExchanges.setSenderCodingScheme(StandardCodingSchemeType.valueOf(codingScheme));
+
+                case SENDER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MRID_ELEMENT_NAME:
+                    String senderCodingScheme = reader.getAttributeValue(null, CODING_SCHEME_ELEMENT_NAME);
+                    pevfExchanges.setSenderCodingScheme(StandardCodingSchemeType.valueOf(senderCodingScheme));
                     String senderId = reader.getElementText();
                     pevfExchanges.setSenderId(senderId);
                     break;
-                }
-                case SENDER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MARKET_ROLE_ELEMENT_NAME: {
+
+                case SENDER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MARKET_ROLE_ELEMENT_NAME:
                     String senderMarketRole = reader.getElementText();
                     pevfExchanges.setSenderMarketRole(StandardRoleType.valueOf(senderMarketRole));
                     break;
-                }
-                case RECEIVER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MRID_ELEMENT_NAME: {
+
+                case RECEIVER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MRID_ELEMENT_NAME:
                     String codingScheme = reader.getAttributeValue(null, CODING_SCHEME_ELEMENT_NAME);
                     pevfExchanges.setReceiverCodingScheme(StandardCodingSchemeType.valueOf(codingScheme));
                     String receiverId = reader.getElementText();
                     pevfExchanges.setReceiverId(receiverId);
                     break;
-                }
-                case RECEIVER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MARKET_ROLE_ELEMENT_NAME: {
+
+                case RECEIVER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MARKET_ROLE_ELEMENT_NAME:
                     String receiverMarketRole = reader.getElementText();
                     pevfExchanges.setReceiverMarketRole(StandardRoleType.valueOf(receiverMarketRole));
                     break;
-                }
-                case CREATION_DATETIME_ELEMENT_NAME: {
+
+                case CREATION_DATETIME_ELEMENT_NAME:
                     String creationDate = reader.getElementText();
                     pevfExchanges.setCreationDate(ZonedDateTime.parse(creationDate));
                     break;
-                }
-                case TIME_INTERVAL_ELEMENT_NAME: {
+
+                case TIME_INTERVAL_ELEMENT_NAME:
                     String periodStart = XmlUtil.readUntilEndElement(START_ELEMENT_NAME, reader, null);
                     String periodEnd = XmlUtil.readUntilEndElement(END_ELEMENT_NAME, reader, null);
                     pevfExchanges.setPeriodStart(ZonedDateTime.parse(periodStart));
                     pevfExchanges.setPeriodEnd(ZonedDateTime.parse(periodEnd));
                     break;
-                }
-                case DATASET_MARKET_DOCUMENT_ELEMENT_NAME + "." + MRID_ELEMENT_NAME: {
+
+                case DATASET_MARKET_DOCUMENT_ELEMENT_NAME + "." + MRID_ELEMENT_NAME:
                     String datasetId = reader.getElementText();
                     pevfExchanges.setDatasetMarketDocumentMRId(datasetId);
                     break;
-                }
-                case DOC_STATUS_ELEMENT_NAME: {
+
+                case DOC_STATUS_ELEMENT_NAME:
                     String value = XmlUtil.readUntilEndElement(VALUE_ELEMENT_NAME, reader, null);
                     pevfExchanges.setDocStatus(StandardStatusType.valueOf(value));
                     break;
-                }
-                case TIMESERIES_ELEMENT_NAME: {
+
+                case TIMESERIES_ELEMENT_NAME:
                     // Nothing to do
                     break;
-                }
-                default: {
-                    //throw new PowsyblException("Unexpected value: " + reader.getLocalName());
-                }
+
+                default:
+                    LOGGER.warn("Token {} not used", reader.getLocalName());
             }
         });
     }
