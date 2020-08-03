@@ -8,7 +8,6 @@ package com.powsybl.balances_adjustment.pevf;
 
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.commons.xml.XmlUtil;
-import org.joda.time.DateTime;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.time.ZonedDateTime;
