@@ -6,6 +6,8 @@
  */
 package com.powsybl.balances_adjustment.pevf;
 
+import com.powsybl.timeseries.StoredDoubleTimeSeries;
+
 import java.time.ZonedDateTime;
 import java.util.*;
 
@@ -47,6 +49,9 @@ public class PevfExchanges {
     private String datasetMarketDocumentMRId;
     /** The identification of the condition or position of the document with regard to its standing. A document may be intermediate or final. */
     private StandardStatusType docStatus;
+
+    // Time Series
+    private final Map<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
 
     PevfExchanges() {
     }
@@ -192,4 +197,11 @@ public class PevfExchanges {
     }
 
     // TimeSeries
+    public void addTimeSeries(StoredDoubleTimeSeries timeseries) {
+        timeSeriesById.put(timeseries.getMetadata().getName(), timeseries);
+    }
+
+    public StoredDoubleTimeSeries getTimeSeries(String name) {
+        return timeSeriesById.get(name);
+    }
 }
