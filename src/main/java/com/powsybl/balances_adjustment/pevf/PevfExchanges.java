@@ -6,11 +6,8 @@
  */
 package com.powsybl.balances_adjustment.pevf;
 
-import com.powsybl.commons.PowsyblException;
-
 import java.time.ZonedDateTime;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Pan European Verification Function data.
@@ -54,12 +51,13 @@ public class PevfExchanges {
     PevfExchanges() {
     }
 
+    // MarketDocument metadata
     public String getMRId() {
         return mRID;
     }
 
     public PevfExchanges setMRId(String mRID) {
-        this.mRID = mRID;
+        this.mRID = Objects.requireNonNull(mRID);
         return this;
     }
 
@@ -69,7 +67,7 @@ public class PevfExchanges {
 
     public PevfExchanges setRevisionNumber(int revisionNumber) {
         if (revisionNumber < 0) {
-            throw new PowsyblException("Unexpected revision number (" + revisionNumber + ")");
+            throw new IllegalArgumentException("Bad revision number value " + revisionNumber);
         }
         this.revisionNumber = revisionNumber;
         return this;
@@ -80,8 +78,7 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setType(StandardMessageType type) {
-        Objects.requireNonNull(type);
-        this.type = type;
+        this.type = Objects.requireNonNull(type);
         return this;
     }
 
@@ -90,8 +87,7 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setProcessType(StandardProcessType processType) {
-        Objects.requireNonNull(processType);
-        this.processType = processType;
+        this.processType = Objects.requireNonNull(processType);
         return this;
     }
 
@@ -100,8 +96,7 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setSenderId(String senderId) {
-        Objects.requireNonNull(senderId);
-        this.senderId = senderId;
+        this.senderId = Objects.requireNonNull(senderId);
         return this;
     }
 
@@ -110,8 +105,7 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setSenderCodingScheme(StandardCodingSchemeType senderCodingScheme) {
-        Objects.requireNonNull(senderCodingScheme);
-        this.senderCodingScheme = senderCodingScheme;
+        this.senderCodingScheme = Objects.requireNonNull(senderCodingScheme);
         return this;
     }
 
@@ -120,8 +114,7 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setSenderMarketRole(StandardRoleType senderMarketRole) {
-        Objects.requireNonNull(senderMarketRole);
-        this.senderMarketRole = senderMarketRole;
+        this.senderMarketRole = Objects.requireNonNull(senderMarketRole);
         return this;
     }
 
@@ -130,8 +123,7 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setReceiverId(String receiverId) {
-        Objects.requireNonNull(receiverId);
-        this.receiverId = receiverId;
+        this.receiverId = Objects.requireNonNull(receiverId);
         return this;
     }
 
@@ -140,8 +132,7 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setReceiverCodingScheme(StandardCodingSchemeType receiverCodingScheme) {
-        Objects.requireNonNull(receiverCodingScheme);
-        this.receiverCodingScheme = receiverCodingScheme;
+        this.receiverCodingScheme = Objects.requireNonNull(receiverCodingScheme);
         return this;
     }
 
@@ -150,8 +141,7 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setReceiverMarketRole(StandardRoleType receiverMarketRole) {
-        Objects.requireNonNull(receiverMarketRole);
-        this.receiverMarketRole = receiverMarketRole;
+        this.receiverMarketRole = Objects.requireNonNull(receiverMarketRole);
         return this;
     }
 
@@ -160,8 +150,7 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setCreationDate(ZonedDateTime creationDate) {
-        Objects.requireNonNull(creationDate);
-        this.creationDate = creationDate;
+        this.creationDate = Objects.requireNonNull(creationDate);
         return this;
     }
 
@@ -170,8 +159,7 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setPeriodStart(ZonedDateTime periodStart) {
-        Objects.requireNonNull(periodStart);
-        this.periodStart = periodStart;
+        this.periodStart = Objects.requireNonNull(periodStart);
         return this;
     }
 
@@ -180,18 +168,17 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setPeriodEnd(ZonedDateTime periodEnd) {
-        Objects.requireNonNull(periodEnd);
-        this.periodEnd = periodEnd;
+        this.periodEnd = Objects.requireNonNull(periodEnd);
         return this;
     }
 
+    // MarketDocument optional metadata
     public Optional<String> getDatasetMarketDocumentMRId() {
         return Optional.ofNullable(datasetMarketDocumentMRId);
     }
 
     public PevfExchanges setDatasetMarketDocumentMRId(String datasetMarketDocumentMRId) {
-        Objects.requireNonNull(datasetMarketDocumentMRId);
-        this.datasetMarketDocumentMRId = datasetMarketDocumentMRId;
+        this.datasetMarketDocumentMRId = Objects.requireNonNull(datasetMarketDocumentMRId);
         return this;
     }
 
@@ -200,8 +187,9 @@ public class PevfExchanges {
     }
 
     public PevfExchanges setDocStatus(StandardStatusType docStatus) {
-        Objects.requireNonNull(docStatus);
-        this.docStatus = docStatus;
+        this.docStatus = Objects.requireNonNull(docStatus);
         return this;
     }
+
+    // TimeSeries
 }

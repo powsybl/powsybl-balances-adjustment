@@ -6,7 +6,6 @@
  */
 package com.powsybl.balances_adjustment.pevf;
 
-import com.powsybl.commons.PowsyblException;
 import com.powsybl.commons.xml.XmlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.time.ZonedDateTime;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Pan European Verification Function XML parser.
@@ -24,6 +24,10 @@ public final class PevfExchangesXml {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PevfExchangesXml.class);
 
+    // Log messages
+    private static final String UNEXPECTED_TOKEN = "Unexpected token: {}";
+
+    // Metadata
     private static final String ROOT_ELEMENT_NAME = "ReportingInformation_MarketDocument";
     private static final String MRID_ELEMENT_NAME = "mRID";
     private static final String REVISION_NUMBER_ELEMENT_NAME = "revisionNumber";
@@ -34,33 +38,30 @@ public final class PevfExchangesXml {
     private static final String MARKET_ROLE_ELEMENT_NAME = "marketRole.type";
     private static final String RECEIVER_MARKET_PARTICIPANT_ELEMENT_NAME = "receiver_MarketParticipant";
     private static final String CREATION_DATETIME_ELEMENT_NAME = "createdDateTime";
-    private static final String TIME_INTERVAL_ELEMENT_NAME = "time_Period.timeInterval";
+    private static final String TIME_PERIOD_INTERVAL_ELEMENT_NAME = "time_Period.timeInterval";
     private static final String START_ELEMENT_NAME = "start";
     private static final String END_ELEMENT_NAME = "end";
     private static final String DATASET_MARKET_DOCUMENT_ELEMENT_NAME = "dataset_MarketDocument";
     private static final String DOC_STATUS_ELEMENT_NAME = "docStatus";
     private static final String VALUE_ELEMENT_NAME = "value";
+    // TimeSeries
     private static final String TIMESERIES_ELEMENT_NAME = "TimeSeries";
 
     private PevfExchangesXml() {
     }
 
     public static void read(PevfExchanges pevfExchanges, XMLStreamReader reader) throws XMLStreamException {
-        XmlUtil.readUntilEndElementWithDepth(ROOT_ELEMENT_NAME, reader,  (int depth) -> {
+        XmlUtil.readUntilEndElement(ROOT_ELEMENT_NAME, reader,  () -> {
             switch (reader.getLocalName()) {
-                case MRID_ELEMENT_NAME:
-                    switch (depth) {
-                        case 1:
-                            String mRID = reader.getElementText();
-                            pevfExchanges.setMRId(mRID);
-                            break;
-                        case 2:
-                            // New TimeSeries
-                            break;
-                        default:
-                            throw new PowsyblException("Unexpected depth value: " + depth);
-                    }
+                case ROOT_ELEMENT_NAME:
+                    // Nothing to do
                     break;
+
+                case MRID_ELEMENT_NAME:
+                    String mRID = reader.getElementText();
+                    pevfExchanges.setMRId(mRID);
+                    break;
+
                 case REVISION_NUMBER_ELEMENT_NAME:
                     String revisionNumber = reader.getElementText();
                     pevfExchanges.setRevisionNumber(Integer.parseInt(revisionNumber));
@@ -105,11 +106,12 @@ public final class PevfExchangesXml {
                     pevfExchanges.setCreationDate(ZonedDateTime.parse(creationDate));
                     break;
 
-                case TIME_INTERVAL_ELEMENT_NAME:
-                    String periodStart = XmlUtil.readUntilEndElement(START_ELEMENT_NAME, reader, null);
-                    String periodEnd = XmlUtil.readUntilEndElement(END_ELEMENT_NAME, reader, null);
-                    pevfExchanges.setPeriodStart(ZonedDateTime.parse(periodStart));
-                    pevfExchanges.setPeriodEnd(ZonedDateTime.parse(periodEnd));
+                case TIME_PERIOD_INTERVAL_ELEMENT_NAME:
+                    AtomicReference<ZonedDateTime> start = new AtomicReference<>();
+                    AtomicReference<ZonedDateTime> end = new AtomicReference<>();
+                    readTimeInterval(reader, TIME_PERIOD_INTERVAL_ELEMENT_NAME, start, end);
+                    pevfExchanges.setPeriodStart(start.get());
+                    pevfExchanges.setPeriodEnd(end.get());
                     break;
 
                 case DATASET_MARKET_DOCUMENT_ELEMENT_NAME + "." + MRID_ELEMENT_NAME:
@@ -123,11 +125,44 @@ public final class PevfExchangesXml {
                     break;
 
                 case TIMESERIES_ELEMENT_NAME:
-                    // Nothing to do
+                    readTimeSeries(pevfExchanges, reader);
                     break;
 
                 default:
-                    LOGGER.warn("Token {} not used", reader.getLocalName());
+                    LOGGER.warn(UNEXPECTED_TOKEN, reader.getLocalName());
+            }
+        });
+    }
+
+    private static void readTimeSeries(PevfExchanges pevfExchanges, XMLStreamReader reader) throws XMLStreamException {
+        AtomicReference<String> timeSeriesMRID = new AtomicReference<>();
+        XmlUtil.readUntilEndElement(TIMESERIES_ELEMENT_NAME, reader, () -> {
+            switch (reader.getLocalName()) {
+                case MRID_ELEMENT_NAME:
+                    timeSeriesMRID.set(reader.getElementText());
+                    break;
+
+                default:
+                    LOGGER.warn(UNEXPECTED_TOKEN, reader.getLocalName());
+            }
+        });
+    }
+
+    private static void readTimeInterval(XMLStreamReader reader, String rootElement, AtomicReference<ZonedDateTime> start, AtomicReference<ZonedDateTime> end) throws XMLStreamException {
+        XmlUtil.readUntilEndElement(rootElement, reader, () -> {
+            switch (reader.getLocalName()) {
+                case START_ELEMENT_NAME :
+                    String periodStart = reader.getElementText();
+                    start.set(ZonedDateTime.parse(periodStart));
+                    break;
+
+                case END_ELEMENT_NAME :
+                    String periodEnd = reader.getElementText();
+                    end.set(ZonedDateTime.parse(periodEnd));
+                    break;
+
+                default:
+                    LOGGER.warn(UNEXPECTED_TOKEN, reader.getLocalName());
             }
         });
     }

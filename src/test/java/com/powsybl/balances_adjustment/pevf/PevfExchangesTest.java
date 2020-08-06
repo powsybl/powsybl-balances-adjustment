@@ -6,7 +6,6 @@
  */
 package com.powsybl.balances_adjustment.pevf;
 
-import com.powsybl.commons.PowsyblException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -14,7 +13,7 @@ import org.junit.rules.ExpectedException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.InputStream;
+import java.io.*;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
@@ -34,20 +33,20 @@ public class PevfExchangesTest {
     private final PevfExchanges pevfExchanges = new PevfExchanges();
 
     @Test
-    public void parsingTestV20() throws XMLStreamException {
+    public void parsingTestV20() throws XMLStreamException, IOException {
         InputStream is = getClass().getResourceAsStream("/testPEVFMarketDocument_2-0.xml");
         XMLStreamReader xmlReader = XMLInputFactory.newInstance().createXMLStreamReader(is);
         PevfExchangesXml.read(pevfExchanges, xmlReader);
 
         // Getters
-        assertEquals("20200405_TA_CGM_000000364", pevfExchanges.getMRId());
+        assertEquals("MarketDocument_MRID", pevfExchanges.getMRId());
         assertEquals(1, pevfExchanges.getRevisionNumber());
         assertEquals(StandardMessageType.B19, pevfExchanges.getType());
         assertEquals(StandardProcessType.A01, pevfExchanges.getProcessType());
-        assertEquals("04T0364T--000364", pevfExchanges.getSenderId());
+        assertEquals("SenderMarket", pevfExchanges.getSenderId());
         assertEquals(StandardCodingSchemeType.A01, pevfExchanges.getSenderCodingScheme());
         assertEquals(StandardRoleType.A32, pevfExchanges.getSenderMarketRole());
-        assertEquals("04T112233440005Q", pevfExchanges.getReceiverId());
+        assertEquals("ReceiverMarket", pevfExchanges.getReceiverId());
         assertEquals(StandardCodingSchemeType.A01, pevfExchanges.getReceiverCodingScheme());
         assertEquals(StandardRoleType.A33, pevfExchanges.getReceiverMarketRole());
         assertEquals(ZonedDateTime.parse("2020-04-05T14:30:00Z"), pevfExchanges.getCreationDate());
@@ -93,8 +92,8 @@ public class PevfExchangesTest {
 
     @Test
     public void invalidMRId() {
-        exception.expect(PowsyblException.class);
-        exception.expectMessage("Unexpected revision number (-1)");
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Bad revision number value -1");
         pevfExchanges.setRevisionNumber(-1);
     }
 
