@@ -43,35 +43,35 @@ public final class PevfExchangesXml {
 
     private static class ParsingContext {
 
-        private String mRID;
-
-        private int revisionNumber;
-
-        private StandardMessageType type;
-
-        private StandardProcessType processType;
-
-        private String senderId;
-
-        private StandardCodingSchemeType senderCodingScheme;
-
-        private StandardRoleType senderMarketRole;
-
-        private String receiverId;
-
-        private StandardCodingSchemeType receiverCodingScheme;
-
-        private StandardRoleType receiverMarketRole;
-
-        private ZonedDateTime creationDate;
-
-        private org.threeten.extra.Interval period;
-
-        private String datasetMarketDocumentMRId;
+        private Map<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
 
         private StandardStatusType docStatus;
 
-        private Map<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
+        private String datasetMarketDocumentMRId;
+
+        private org.threeten.extra.Interval period;
+
+        private ZonedDateTime creationDate;
+
+        private StandardRoleType receiverMarketRole;
+
+        private StandardCodingSchemeType receiverCodingScheme;
+
+        private String receiverId;
+
+        private StandardRoleType senderMarketRole;
+
+        private StandardCodingSchemeType senderCodingScheme;
+
+        private String senderId;
+
+        private StandardProcessType processType;
+
+        private StandardMessageType type;
+
+        private int revisionNumber;
+
+        private String mRID;
     }
 
     private static class ParsingTimeSeriesContext {
