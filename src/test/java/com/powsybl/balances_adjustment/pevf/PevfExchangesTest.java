@@ -8,14 +8,11 @@ package com.powsybl.balances_adjustment.pevf;
 
 import com.powsybl.timeseries.DoubleTimeSeries;
 import com.powsybl.timeseries.StoredDoubleTimeSeries;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import java.io.*;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -33,75 +30,41 @@ public class PevfExchangesTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private static final PevfExchanges EXCHANGES = new PevfExchanges();
-    private static final double[] TIMESERIES3_VALUES = new double[] {0.000d, 0.250d, 0.500d, 0.750d, 0.750d};
-    private static final double[] TIMESERIES4_VALUES = new double[] {3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3926.042, 3926.042, 3926.042, 3926.042, 3926.042, 3924.460, 3924.460, 3924.460, 3924.460, 3924.460};
-
-    @BeforeClass
-    public static void setUp() throws XMLStreamException {
-        InputStream is = PevfExchangesTest.class.getResourceAsStream("/testPEVFMarketDocument_2-0.xml");
-        XMLStreamReader xmlReader = XMLInputFactory.newInstance().createXMLStreamReader(is);
-        PevfExchangesXml.read(EXCHANGES, xmlReader);
-    }
+    private static final double[] TIME_SERIES_1_VALUES = new double[] {0.000d};
+    private static final double[] TIME_SERIES_2_VALUES = new double[] {0.020d, 0.020d};
+    private static final double[] TIME_SERIES_3_VALUES = new double[] {0.000d, 0.250d, 0.500d, 0.750d};
+    private static final double[] TIME_SERIES_4_VALUES = new double[] {3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3926.042, 3926.042, 3926.042, 3926.042, 3926.042, 3924.460, 3924.460, 3924.460, 3924.460};
 
     @Test
-    public void baseTests() {
+    public void baseTests() throws XMLStreamException {
+        final InputStreamReader reader = new InputStreamReader(PevfExchangesTest.class.getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
+        final PevfExchanges exchanges = PevfExchangesXml.parse(reader);
+
         // Getters
-        assertEquals("MarketDocument_MRID", EXCHANGES.getMRId());
-        assertEquals(1, EXCHANGES.getRevisionNumber());
-        assertEquals(StandardMessageType.B19, EXCHANGES.getType());
-        assertEquals(StandardProcessType.A01, EXCHANGES.getProcessType());
-        assertEquals("SenderMarket", EXCHANGES.getSenderId());
-        assertEquals(StandardCodingSchemeType.A01, EXCHANGES.getSenderCodingScheme());
-        assertEquals(StandardRoleType.A32, EXCHANGES.getSenderMarketRole());
-        assertEquals("ReceiverMarket", EXCHANGES.getReceiverId());
-        assertEquals(StandardCodingSchemeType.A01, EXCHANGES.getReceiverCodingScheme());
-        assertEquals(StandardRoleType.A33, EXCHANGES.getReceiverMarketRole());
-        assertEquals(ZonedDateTime.parse("2020-04-05T14:30:00Z"), EXCHANGES.getCreationDate());
-        assertEquals(ZonedDateTime.parse("2020-04-05T22:00Z"), EXCHANGES.getPeriodStart());
-        assertEquals(ZonedDateTime.parse("2020-04-06T22:00Z"), EXCHANGES.getPeriodEnd());
+        assertEquals("MarketDocument_MRID", exchanges.getMRId());
+        assertEquals(1, exchanges.getRevisionNumber());
+        assertEquals(StandardMessageType.B19, exchanges.getType());
+        assertEquals(StandardProcessType.A01, exchanges.getProcessType());
+        assertEquals("SenderMarket", exchanges.getSenderId());
+        assertEquals(StandardCodingSchemeType.A01, exchanges.getSenderCodingScheme());
+        assertEquals(StandardRoleType.A32, exchanges.getSenderMarketRole());
+        assertEquals("ReceiverMarket", exchanges.getReceiverId());
+        assertEquals(StandardCodingSchemeType.A01, exchanges.getReceiverCodingScheme());
+        assertEquals(StandardRoleType.A33, exchanges.getReceiverMarketRole());
+        assertEquals(ZonedDateTime.parse("2020-04-05T14:30:00Z"), exchanges.getCreationDate());
+        assertEquals(ZonedDateTime.parse("2020-04-05T22:00Z").toInstant(), exchanges.getPeriod().getStart());
+        assertEquals(ZonedDateTime.parse("2020-04-06T22:00Z").toInstant(), exchanges.getPeriod().getEnd());
         // Optional
-        assertEquals(Optional.of("PEVF CGM Export"), EXCHANGES.getDatasetMarketDocumentMRId());
-        assertEquals(Optional.of(StandardStatusType.A01), EXCHANGES.getDocStatus());
-
-        // Setters
-        assertEquals(EXCHANGES, EXCHANGES.setMRId("MRId"));
-        assertEquals("MRId", EXCHANGES.getMRId());
-        assertEquals(EXCHANGES, EXCHANGES.setRevisionNumber(2));
-        assertEquals(2, EXCHANGES.getRevisionNumber());
-        assertEquals(EXCHANGES, EXCHANGES.setType(StandardMessageType.B19));
-        assertEquals(StandardMessageType.B19, EXCHANGES.getType());
-        assertEquals(EXCHANGES, EXCHANGES.setProcessType(StandardProcessType.A01));
-        assertEquals(StandardProcessType.A01, EXCHANGES.getProcessType());
-        assertEquals(EXCHANGES, EXCHANGES.setSenderId("SenderId"));
-        assertEquals("SenderId", EXCHANGES.getSenderId());
-        assertEquals(EXCHANGES, EXCHANGES.setSenderCodingScheme(StandardCodingSchemeType.A02));
-        assertEquals(StandardCodingSchemeType.A02, EXCHANGES.getSenderCodingScheme());
-        assertEquals(EXCHANGES, EXCHANGES.setSenderMarketRole(StandardRoleType.A33));
-        assertEquals(StandardRoleType.A33, EXCHANGES.getSenderMarketRole());
-        assertEquals(EXCHANGES, EXCHANGES.setReceiverId("ReceiverId"));
-        assertEquals("ReceiverId", EXCHANGES.getReceiverId());
-        assertEquals(EXCHANGES, EXCHANGES.setReceiverCodingScheme(StandardCodingSchemeType.A02));
-        assertEquals(StandardCodingSchemeType.A02, EXCHANGES.getReceiverCodingScheme());
-        assertEquals(EXCHANGES, EXCHANGES.setReceiverMarketRole(StandardRoleType.A32));
-        assertEquals(StandardRoleType.A32, EXCHANGES.getReceiverMarketRole());
-        assertEquals(EXCHANGES, EXCHANGES.setCreationDate(ZonedDateTime.parse("1983-11-04T14:11:00Z")));
-        assertEquals(ZonedDateTime.parse("1983-11-04T14:11:00Z"), EXCHANGES.getCreationDate());
-        assertEquals(EXCHANGES, EXCHANGES.setPeriodStart(ZonedDateTime.parse("1982-11-23T02:00:00Z")));
-        assertEquals(ZonedDateTime.parse("1982-11-23T02:00:00Z"), EXCHANGES.getPeriodStart());
-        assertEquals(EXCHANGES, EXCHANGES.setPeriodEnd(ZonedDateTime.parse("1982-11-23T04:00:00Z")));
-        assertEquals(ZonedDateTime.parse("1982-11-23T04:00:00Z"), EXCHANGES.getPeriodEnd());
-        // Optional
-        assertEquals(EXCHANGES, EXCHANGES.setDatasetMarketDocumentMRId("DatasetMarketDocumentMRId"));
-        assertEquals(Optional.of("DatasetMarketDocumentMRId"), EXCHANGES.getDatasetMarketDocumentMRId());
-        assertEquals(EXCHANGES, EXCHANGES.setDocStatus(StandardStatusType.A02));
-        assertEquals(Optional.of(StandardStatusType.A02), EXCHANGES.getDocStatus());
+        assertEquals(Optional.of("PEVF CGM Export"), exchanges.getDatasetMarketDocumentMRId());
+        assertEquals(Optional.of(StandardStatusType.A01), exchanges.getDocStatus());
     }
 
     @Test
-    public void timeSeriesTests() {
+    public void timeSeriesTests() throws XMLStreamException {
+        final InputStreamReader reader = new InputStreamReader(PevfExchangesTest.class.getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
+        final PevfExchanges exchanges = PevfExchangesXml.parse(reader);
         // Time Series
-        DoubleTimeSeries timeSeries1 = EXCHANGES.getTimeSeries("TimeSeries1");
+        DoubleTimeSeries timeSeries1 = exchanges.getTimeSeries("TimeSeries1");
         // TimeSeries1 : Check metadata
         assertEquals("TimeSeries1", timeSeries1.getMetadata().getName());
         assertEquals("B63", timeSeries1.getMetadata().getTags().get("businessType"));
@@ -115,35 +78,33 @@ public class PevfExchangesTest {
         assertEquals("A03", timeSeries1.getMetadata().getTags().get("curveType"));
         // TimeSeries1 : values
         // Single step, single value
-        timeSeries1.stream().forEach(point -> {
-            assertEquals(0.0d, point.getValue(), 0d);
-            assertEquals(1586124000000L + point.getIndex() * 60 * 60 * 1000, point.getTime());
-        });
+        assertArrayEquals(TIME_SERIES_1_VALUES, timeSeries1.toArray(), 0.0d);
 
         // TimeSeries2
         // Multi steps, single value
-        DoubleTimeSeries timeSeries2 = EXCHANGES.getTimeSeries("TimeSeries2");
-        timeSeries2.stream().forEach(point -> {
-            assertEquals(0.02d, point.getValue(), 0d);
-            assertEquals(1586120400000L + point.getIndex() * 60 * 60 * 1000, point.getTime());
-        });
+        DoubleTimeSeries timeSeries2 = exchanges.getTimeSeries("TimeSeries2");
+        assertArrayEquals(TIME_SERIES_2_VALUES, timeSeries2.toArray(), 0.0d);
 
         // TimeSeries3
         // Each value defined
-        DoubleTimeSeries timeSeries3 = EXCHANGES.getTimeSeries("TimeSeries3");
-        assertArrayEquals(TIMESERIES3_VALUES, timeSeries3.toArray(), 0.0d);
+        DoubleTimeSeries timeSeries3 = exchanges.getTimeSeries("TimeSeries3");
+        assertArrayEquals(TIME_SERIES_3_VALUES, timeSeries3.toArray(), 0.0d);
 
         // TimeSeries4
         // Each value not defined
-        StoredDoubleTimeSeries timeSeries4 = EXCHANGES.getTimeSeries("TimeSeries4");
-        assertArrayEquals(TIMESERIES4_VALUES, timeSeries4.toArray(), 0.0d);
+        StoredDoubleTimeSeries timeSeries4 = exchanges.getTimeSeries("TimeSeries4");
+        assertArrayEquals(TIME_SERIES_4_VALUES, timeSeries4.toArray(), 0.0d);
     }
 
     @Test
     public void invalidRevisionNumberTest() {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Bad revision number value -1");
-        EXCHANGES.setRevisionNumber(-1);
+
+        new PevfExchanges("", -1, StandardMessageType.B19, StandardProcessType.A01,
+                 "", StandardCodingSchemeType.A01, StandardRoleType.A32,
+                "", StandardCodingSchemeType.A02, StandardRoleType.A33,
+                          ZonedDateTime.now(), null, "", StandardStatusType.A01, null);
     }
 
     @Test

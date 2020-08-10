@@ -7,6 +7,7 @@
 package com.powsybl.balances_adjustment.pevf;
 
 import com.powsybl.timeseries.StoredDoubleTimeSeries;
+import org.threeten.extra.Interval;
 
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -40,8 +41,7 @@ public class PevfExchanges {
     /** The date and time of the creation of the document. */
     private ZonedDateTime creationDate;
     /** This information provides the start and end date and time of the period covered by the document. */
-    private ZonedDateTime periodStart;
-    private ZonedDateTime periodEnd;
+    private org.threeten.extra.Interval period;
 
     // Optional data
     /** The identification of an individually predefined dataset in a
@@ -53,7 +53,30 @@ public class PevfExchanges {
     // Time Series
     private final Map<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
 
-    PevfExchanges() {
+    PevfExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
+                  String senderId, StandardCodingSchemeType senderCodingScheme, StandardRoleType senderMarketRole,
+                  String receiverId, StandardCodingSchemeType receiverCodingScheme, StandardRoleType receiverMarketRole,
+                  ZonedDateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<String, StoredDoubleTimeSeries> timeSeriesById) {
+        this.mRID = Objects.requireNonNull(mRID, "mRID is missing");
+
+        if (revisionNumber < 0 || revisionNumber > 100) {
+            throw new IllegalArgumentException("Bad revision number value " + revisionNumber);
+        }
+        this.revisionNumber = revisionNumber;
+
+        this.type = Objects.requireNonNull(type, "StandardMessageType is missing");
+        this.processType = Objects.requireNonNull(processType, "StandardMessageType is missing");
+        this.senderId = Objects.requireNonNull(senderId, "Sender mRID is missing");
+        this.senderCodingScheme = Objects.requireNonNull(senderCodingScheme, "Sender codingScheme is missing");
+        this.senderMarketRole = Objects.requireNonNull(senderMarketRole, "Sender role is missing");
+        this.receiverId = Objects.requireNonNull(receiverId, "Receiver mRID is missing");
+        this.receiverCodingScheme = Objects.requireNonNull(receiverCodingScheme, "Receiver codingScheme is missing");
+        this.receiverMarketRole = Objects.requireNonNull(receiverMarketRole, "Receiver role is missing");
+        this.creationDate = Objects.requireNonNull(creationDate, "Creation DateTime is missing");
+        this.period = Objects.requireNonNull(period, "Time interval is missing");
+        this.datasetMarketDocumentMRId = datasetMarketDocumentMRId;
+        this.docStatus = docStatus;
+        this.timeSeriesById.putAll(timeSeriesById);
     }
 
     // MarketDocument metadata
@@ -61,120 +84,48 @@ public class PevfExchanges {
         return mRID;
     }
 
-    public PevfExchanges setMRId(String mRID) {
-        this.mRID = Objects.requireNonNull(mRID);
-        return this;
-    }
-
     public int getRevisionNumber() {
         return revisionNumber;
-    }
-
-    public PevfExchanges setRevisionNumber(int revisionNumber) {
-        if (revisionNumber < 0) {
-            throw new IllegalArgumentException("Bad revision number value " + revisionNumber);
-        }
-        this.revisionNumber = revisionNumber;
-        return this;
     }
 
     public StandardMessageType getType() {
         return type;
     }
 
-    public PevfExchanges setType(StandardMessageType type) {
-        this.type = Objects.requireNonNull(type);
-        return this;
-    }
-
     public StandardProcessType getProcessType() {
         return processType;
-    }
-
-    public PevfExchanges setProcessType(StandardProcessType processType) {
-        this.processType = Objects.requireNonNull(processType);
-        return this;
     }
 
     public String getSenderId() {
         return senderId;
     }
 
-    public PevfExchanges setSenderId(String senderId) {
-        this.senderId = Objects.requireNonNull(senderId);
-        return this;
-    }
-
     public StandardCodingSchemeType getSenderCodingScheme() {
         return senderCodingScheme;
-    }
-
-    public PevfExchanges setSenderCodingScheme(StandardCodingSchemeType senderCodingScheme) {
-        this.senderCodingScheme = Objects.requireNonNull(senderCodingScheme);
-        return this;
     }
 
     public StandardRoleType getSenderMarketRole() {
         return senderMarketRole;
     }
 
-    public PevfExchanges setSenderMarketRole(StandardRoleType senderMarketRole) {
-        this.senderMarketRole = Objects.requireNonNull(senderMarketRole);
-        return this;
-    }
-
     public String getReceiverId() {
         return receiverId;
-    }
-
-    public PevfExchanges setReceiverId(String receiverId) {
-        this.receiverId = Objects.requireNonNull(receiverId);
-        return this;
     }
 
     public StandardCodingSchemeType getReceiverCodingScheme() {
         return receiverCodingScheme;
     }
 
-    public PevfExchanges setReceiverCodingScheme(StandardCodingSchemeType receiverCodingScheme) {
-        this.receiverCodingScheme = Objects.requireNonNull(receiverCodingScheme);
-        return this;
-    }
-
     public StandardRoleType getReceiverMarketRole() {
         return receiverMarketRole;
-    }
-
-    public PevfExchanges setReceiverMarketRole(StandardRoleType receiverMarketRole) {
-        this.receiverMarketRole = Objects.requireNonNull(receiverMarketRole);
-        return this;
     }
 
     public ZonedDateTime getCreationDate() {
         return creationDate;
     }
 
-    public PevfExchanges setCreationDate(ZonedDateTime creationDate) {
-        this.creationDate = Objects.requireNonNull(creationDate);
-        return this;
-    }
-
-    public ZonedDateTime getPeriodStart() {
-        return periodStart;
-    }
-
-    public PevfExchanges setPeriodStart(ZonedDateTime periodStart) {
-        this.periodStart = Objects.requireNonNull(periodStart);
-        return this;
-    }
-
-    public ZonedDateTime getPeriodEnd() {
-        return periodEnd;
-    }
-
-    public PevfExchanges setPeriodEnd(ZonedDateTime periodEnd) {
-        this.periodEnd = Objects.requireNonNull(periodEnd);
-        return this;
+    public org.threeten.extra.Interval getPeriod() {
+        return period;
     }
 
     // MarketDocument optional metadata
@@ -182,25 +133,11 @@ public class PevfExchanges {
         return Optional.ofNullable(datasetMarketDocumentMRId);
     }
 
-    public PevfExchanges setDatasetMarketDocumentMRId(String datasetMarketDocumentMRId) {
-        this.datasetMarketDocumentMRId = Objects.requireNonNull(datasetMarketDocumentMRId);
-        return this;
-    }
-
-    public Optional<StandardStatusType> getDocStatus() {
+    Optional<StandardStatusType> getDocStatus() {
         return Optional.ofNullable(docStatus);
     }
 
-    public PevfExchanges setDocStatus(StandardStatusType docStatus) {
-        this.docStatus = Objects.requireNonNull(docStatus);
-        return this;
-    }
-
-    // TimeSeries
-    public void addTimeSeries(StoredDoubleTimeSeries timeseries) {
-        timeSeriesById.put(timeseries.getMetadata().getName(), timeseries);
-    }
-
+    // Utilities
     public StoredDoubleTimeSeries getTimeSeries(String name) {
         return timeSeriesById.get(name);
     }

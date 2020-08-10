@@ -6,19 +6,25 @@
  */
 package com.powsybl.balances_adjustment.pevf;
 
+import com.powsybl.commons.PowsyblException;
+import com.powsybl.commons.exceptions.UncheckedXmlStreamException;
 import com.powsybl.commons.xml.XmlUtil;
 import com.powsybl.timeseries.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.XMLConstants;
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import java.io.Reader;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.*;
+import java.util.stream.IntStream;
+
+import static com.powsybl.balances_adjustment.pevf.PevfExchangesNames.*;
 
 /**
  * Pan European Verification Function XML parser.
@@ -30,293 +36,309 @@ public final class PevfExchangesXml {
     private static final Logger LOGGER = LoggerFactory.getLogger(PevfExchangesXml.class);
 
     // Log messages
-    private static final String UNEXPECTED_TOKEN = "Unexpected token: {}";
-
-    // Metadata
-    private static final String ROOT_ELEMENT_NAME = "ReportingInformation_MarketDocument";
-    private static final String MRID_ELEMENT_NAME = "mRID";
-    private static final String REVISION_NUMBER_ELEMENT_NAME = "revisionNumber";
-    private static final String TYPE_ELEMENT_NAME = "type";
-    private static final String PROCESS_TYPE_ELEMENT_NAME = "process.processType";
-    private static final String SENDER_MARKET_PARTICIPANT_ELEMENT_NAME = "sender_MarketParticipant";
-    private static final String CODING_SCHEME_ELEMENT_NAME = "codingScheme";
-    private static final String MARKET_ROLE_ELEMENT_NAME = "marketRole.type";
-    private static final String RECEIVER_MARKET_PARTICIPANT_ELEMENT_NAME = "receiver_MarketParticipant";
-    private static final String CREATION_DATETIME_ELEMENT_NAME = "createdDateTime";
-    private static final String TIME_PERIOD_INTERVAL_ELEMENT_NAME = "time_Period.timeInterval";
-    private static final String START_ELEMENT_NAME = "start";
-    private static final String END_ELEMENT_NAME = "end";
-    private static final String DATASET_MARKET_DOCUMENT_ELEMENT_NAME = "dataset_MarketDocument";
-    private static final String DOC_STATUS_ELEMENT_NAME = "docStatus";
-    private static final String VALUE_ELEMENT_NAME = "value";
-    // TimeSeries
-    private static final String TIMESERIES_ELEMENT_NAME = "TimeSeries";
-    private static final String BUSINESS_TYPE_ELEMENT_NAME = "businessType";
-    private static final String PRODUCT_ELEMENT_NAME = "product";
-    private static final String IN_DOMAIN_ELEMENT_NAME = "in_Domain";
-    private static final String OUT_DOMAIN_ELEMENT_NAME = "out_Domain";
-    private static final String CONNECTING_LINE_REGISTERED_RESOURCE_ELEMENT_NAME = "connectingLine_RegisteredResource";
-    private static final String MEASUREMENT_UNIT_ELEMENT_NAME = "measurement_Unit.name";
-    private static final String CURVE_TYPE_ELEMENT_NAME = "curveType";
-    private static final String PERIOD_ELEMENT_NAME = "Period";
-    private static final String RESOLUTION_ELEMENT_NAME = "resolution";
-    private static final String TIME_INTERVAL_ELEMENT_NAME = "timeInterval";
-    private static final String POINT_ELEMENT_NAME = "Point";
-    private static final String POSITION_ELEMENT_NAME = "position";
-    private static final String QUANTITY_ELEMENT_NAME = "quantity";
-    private static final String REASON_ELEMENT_NAME = "Reason";
-    private static final String CODE_ELEMENT_NAME = "code";
-    private static final String TEXT_ELEMENT_NAME = "text";
+    private static final String UNEXPECTED_TOKEN = "Unexpected token: ";
 
     private PevfExchangesXml() {
     }
 
-    public static void read(PevfExchanges pevfExchanges, XMLStreamReader reader) throws XMLStreamException {
-        XmlUtil.readUntilEndElement(ROOT_ELEMENT_NAME, reader,  () -> {
-            switch (reader.getLocalName()) {
-                case ROOT_ELEMENT_NAME:
-                    // Nothing to do
-                    break;
+    private static class ParsingContext {
 
-                case MRID_ELEMENT_NAME:
-                    String mRID = reader.getElementText();
-                    pevfExchanges.setMRId(mRID);
-                    break;
+        private String mRID;
 
-                case REVISION_NUMBER_ELEMENT_NAME:
-                    String revisionNumber = reader.getElementText();
-                    pevfExchanges.setRevisionNumber(Integer.parseInt(revisionNumber));
-                    break;
+        private int revisionNumber;
 
-                case TYPE_ELEMENT_NAME:
-                    String type = reader.getElementText();
-                    pevfExchanges.setType(StandardMessageType.valueOf(type));
-                    break;
+        private StandardMessageType type;
 
-                case PROCESS_TYPE_ELEMENT_NAME:
-                    String processType = reader.getElementText();
-                    pevfExchanges.setProcessType(StandardProcessType.valueOf(processType));
-                    break;
+        private StandardProcessType processType;
 
-                case SENDER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MRID_ELEMENT_NAME:
-                    String senderCodingScheme = reader.getAttributeValue(null, CODING_SCHEME_ELEMENT_NAME);
-                    pevfExchanges.setSenderCodingScheme(StandardCodingSchemeType.valueOf(senderCodingScheme));
-                    String senderId = reader.getElementText();
-                    pevfExchanges.setSenderId(senderId);
-                    break;
+        private String senderId;
 
-                case SENDER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MARKET_ROLE_ELEMENT_NAME:
-                    String senderMarketRole = reader.getElementText();
-                    pevfExchanges.setSenderMarketRole(StandardRoleType.valueOf(senderMarketRole));
-                    break;
+        private StandardCodingSchemeType senderCodingScheme;
 
-                case RECEIVER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MRID_ELEMENT_NAME:
-                    String codingScheme = reader.getAttributeValue(null, CODING_SCHEME_ELEMENT_NAME);
-                    pevfExchanges.setReceiverCodingScheme(StandardCodingSchemeType.valueOf(codingScheme));
-                    String receiverId = reader.getElementText();
-                    pevfExchanges.setReceiverId(receiverId);
-                    break;
+        private StandardRoleType senderMarketRole;
 
-                case RECEIVER_MARKET_PARTICIPANT_ELEMENT_NAME + "." + MARKET_ROLE_ELEMENT_NAME:
-                    String receiverMarketRole = reader.getElementText();
-                    pevfExchanges.setReceiverMarketRole(StandardRoleType.valueOf(receiverMarketRole));
-                    break;
+        private String receiverId;
 
-                case CREATION_DATETIME_ELEMENT_NAME:
-                    String creationDate = reader.getElementText();
-                    pevfExchanges.setCreationDate(ZonedDateTime.parse(creationDate));
-                    break;
+        private StandardCodingSchemeType receiverCodingScheme;
 
-                case TIME_PERIOD_INTERVAL_ELEMENT_NAME:
-                    AtomicReference<ZonedDateTime> start = new AtomicReference<>();
-                    AtomicReference<ZonedDateTime> end = new AtomicReference<>();
-                    readTimeInterval(reader, TIME_PERIOD_INTERVAL_ELEMENT_NAME, start, end);
-                    pevfExchanges.setPeriodStart(start.get());
-                    pevfExchanges.setPeriodEnd(end.get());
-                    break;
+        private StandardRoleType receiverMarketRole;
 
-                case DATASET_MARKET_DOCUMENT_ELEMENT_NAME + "." + MRID_ELEMENT_NAME:
-                    String datasetId = reader.getElementText();
-                    pevfExchanges.setDatasetMarketDocumentMRId(datasetId);
-                    break;
+        private ZonedDateTime creationDate;
 
-                case DOC_STATUS_ELEMENT_NAME:
-                    String value = XmlUtil.readUntilEndElement(VALUE_ELEMENT_NAME, reader, null);
-                    pevfExchanges.setDocStatus(StandardStatusType.valueOf(value));
-                    break;
+        private org.threeten.extra.Interval period;
 
-                case TIMESERIES_ELEMENT_NAME:
-                    readTimeSeries(pevfExchanges, reader);
-                    break;
+        private String datasetMarketDocumentMRId;
 
-                default:
-                    LOGGER.warn(UNEXPECTED_TOKEN, reader.getLocalName());
-            }
-        });
+        private StandardStatusType docStatus;
+
+        private Map<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
     }
 
-    private static void readTimeSeries(PevfExchanges pevfExchanges, XMLStreamReader reader) throws XMLStreamException {
-        AtomicReference<String> timeSeriesMRID = new AtomicReference<>();
-        AtomicReference<ZonedDateTime> start = new AtomicReference<>();
-        AtomicReference<ZonedDateTime> end = new AtomicReference<>();
-        AtomicReference<Duration> spacing = new AtomicReference<>();
-        LinkedList<Integer> positions = new LinkedList<>();
-        LinkedList<Double> stepValues = new LinkedList<>();
-        Map<String, String> tags = new HashMap<>();
-        AtomicReference<String> code = new AtomicReference<>();
-        AtomicReference<String> text = new AtomicReference<>();
+    private static class ParsingTimeSeriesContext {
 
-        XmlUtil.readUntilEndElement(TIMESERIES_ELEMENT_NAME, reader, () -> {
-            switch (reader.getLocalName()) {
-                case MRID_ELEMENT_NAME:
-                    timeSeriesMRID.set(reader.getElementText());
-                    break;
+        private String mRID;
 
-                case BUSINESS_TYPE_ELEMENT_NAME:
-                case PRODUCT_ELEMENT_NAME:
-                case IN_DOMAIN_ELEMENT_NAME + "." + MRID_ELEMENT_NAME:
-                case OUT_DOMAIN_ELEMENT_NAME + "." + MRID_ELEMENT_NAME:
-                case CONNECTING_LINE_REGISTERED_RESOURCE_ELEMENT_NAME + "." + MRID_ELEMENT_NAME:
-                case MEASUREMENT_UNIT_ELEMENT_NAME:
-                case CURVE_TYPE_ELEMENT_NAME:
-                    if (reader.getLocalName().equals(IN_DOMAIN_ELEMENT_NAME + "." + MRID_ELEMENT_NAME) ||
-                        reader.getLocalName().equals(OUT_DOMAIN_ELEMENT_NAME + "." + MRID_ELEMENT_NAME)) {
-                        String codingScheme = reader.getAttributeValue(null, CODING_SCHEME_ELEMENT_NAME);
-                        tags.put(reader.getLocalName() + "." + CODING_SCHEME_ELEMENT_NAME, codingScheme);
+        private  org.threeten.extra.Interval period;
+
+        private Duration spacing;
+
+        private LinkedList<Integer> positions = new LinkedList<>();
+
+        private LinkedList<Double> quantities = new LinkedList<>();
+
+        private Map<String, String> tags = new HashMap<>();
+
+        private String code;
+
+        private String text;
+    }
+
+    public static PevfExchanges parse(Reader reader) throws XMLStreamException {
+        Objects.requireNonNull(reader);
+        ParsingContext context = new ParsingContext();
+        try {
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            // disable resolving of external DTD entities  
+            factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
+            factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+
+            XMLStreamReader xmlReader = factory.createXMLStreamReader(reader);
+            try {
+                XmlUtil.readUntilEndElement(ROOT, xmlReader,  () -> {
+                    switch (xmlReader.getLocalName()) {
+
+                        case MRID:
+                            context.mRID = xmlReader.getElementText();
+                            break;
+
+                        case REVISION_NUMBER:
+                            context.revisionNumber = Integer.parseInt(xmlReader.getElementText());
+                            break;
+
+                        case TYPE:
+                            context.type = StandardMessageType.valueOf(xmlReader.getElementText());
+                            break;
+
+                        case PROCESS_TYPE:
+                            context.processType = StandardProcessType.valueOf(xmlReader.getElementText());
+                            break;
+
+                        case SENDER_MARKET_PARTICIPANT + "." + MRID:
+                            context.senderCodingScheme = StandardCodingSchemeType.valueOf(xmlReader.getAttributeValue(null, CODING_SCHEME));
+                            context.senderId = xmlReader.getElementText();
+                            break;
+
+                        case SENDER_MARKET_PARTICIPANT + "." + MARKET_ROLE:
+                            context.senderMarketRole = StandardRoleType.valueOf(xmlReader.getElementText());
+                            break;
+
+                        case RECEIVER_MARKET_PARTICIPANT + "." + MRID:
+                            context.receiverCodingScheme = StandardCodingSchemeType.valueOf(xmlReader.getAttributeValue(null, CODING_SCHEME));
+                            context.receiverId = xmlReader.getElementText();
+                            break;
+
+                        case RECEIVER_MARKET_PARTICIPANT + "." + MARKET_ROLE:
+                            context.receiverMarketRole = StandardRoleType.valueOf(xmlReader.getElementText());
+                            break;
+
+                        case CREATION_DATETIME:
+                            context.creationDate = ZonedDateTime.parse(xmlReader.getElementText());
+                            break;
+
+                        case TIME_PERIOD_INTERVAL:
+                            context.period = readTimeInterval(xmlReader, TIME_PERIOD_INTERVAL);
+                            break;
+
+                        case DATASET_MARKET_DOCUMENT + "." + MRID:
+                            context.datasetMarketDocumentMRId = xmlReader.getElementText();
+                            break;
+
+                        case DOC_STATUS:
+                            context.docStatus = StandardStatusType.valueOf(XmlUtil.readUntilEndElement(VALUE, xmlReader, null));
+                            break;
+
+                        case TIMESERIES:
+                            StoredDoubleTimeSeries timeSeries = readTimeSeries(xmlReader);
+                            context.timeSeriesById.put(timeSeries.getMetadata().getName(), timeSeries);
+                            break;
+
+                        case ROOT:
+                            // Explicit skip
+                            break;
+
+                        default:
+                            throw new PowsyblException(UNEXPECTED_TOKEN + xmlReader.getLocalName());
                     }
-                    tags.put(reader.getLocalName(), reader.getElementText());
-                    break;
-                case PERIOD_ELEMENT_NAME:
-                    readPeriod(reader, start, end, spacing, positions, stepValues);
+                });
+            } finally {
+                xmlReader.close();
+            }
+        } catch (XMLStreamException e) {
+            throw new UncheckedXmlStreamException(e);
+        }
+        // the attributes are checked in the constructor
+        return new PevfExchanges(context.mRID, context.revisionNumber, context.type, context.processType,
+                                 context.senderId, context.senderCodingScheme, context.senderMarketRole,
+                                 context.receiverId, context.receiverCodingScheme, context.receiverMarketRole,
+                                 context.creationDate, context.period, context.datasetMarketDocumentMRId, context.docStatus, context.timeSeriesById);
+    }
+
+    private static StoredDoubleTimeSeries readTimeSeries(XMLStreamReader xmlReader) throws XMLStreamException {
+        ParsingTimeSeriesContext context = new ParsingTimeSeriesContext();
+
+        XmlUtil.readUntilEndElement(TIMESERIES, xmlReader, () -> {
+            switch (xmlReader.getLocalName()) {
+                case MRID:
+                    context.mRID = xmlReader.getElementText();
                     break;
 
-                case REASON_ELEMENT_NAME:
-                    readReason(reader, code, text);
+                case BUSINESS_TYPE:
+                case PRODUCT:
+                case CONNECTING_LINE_REGISTERED_RESOURCE + "." + MRID:
+                case MEASUREMENT_UNIT:
+                case CURVE_TYPE:
+                    context.tags.put(xmlReader.getLocalName(), xmlReader.getElementText());
+                    break;
+
+                case IN_DOMAIN + "." + MRID:
+                case OUT_DOMAIN + "." + MRID:
+                    String codingScheme = xmlReader.getAttributeValue(null, CODING_SCHEME);
+                    context.tags.put(xmlReader.getLocalName() + "." + CODING_SCHEME, codingScheme);
+                    context.tags.put(xmlReader.getLocalName(), xmlReader.getElementText());
+                    break;
+
+                case PERIOD:
+                    readPeriod(xmlReader, context);
+                    break;
+
+                case REASON:
+                    readReason(xmlReader, context);
                     break;
 
                 default:
-                    LOGGER.warn(UNEXPECTED_TOKEN, reader.getLocalName());
+                    throw new PowsyblException(UNEXPECTED_TOKEN + xmlReader.getLocalName());
             }
         });
 
         // Log TimeSeries Reason
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("TimeSeries '{}' [{}, {}] - {} ({}) : {}",  timeSeriesMRID.get(),
-                                                                    start.get(), end.get(),
-                                                                    code.get(),
-                                                                    StandardReasonCodeType.valueOf(code.get()).getDescription(),
-                                                                    text.get());
+            LOGGER.info("TimeSeries '{}' [{}, {}] - {} ({}) : {}",  context.mRID,
+                                                                    context.period.getStart(), context.period.getEnd(),
+                                                                    context.code,
+                                                                    StandardReasonCodeType.valueOf(context.code).getDescription(),
+                                                                    context.text);
         }
 
         // Create DataChunk
         DoubleDataChunk dataChunk = null;
         // Computed number of steps
-        int nbSteps = java.lang.Math.toIntExact((end.get().toInstant().toEpochMilli() - start.get().toInstant().toEpochMilli()) / spacing.get().toMillis());
+        int nbSteps = (int) ((context.period.getEnd().toEpochMilli() - context.period.getStart().toEpochMilli()) / context.spacing.toMillis());
         // Check if all steps are defined or not
-        if (positions.size() == nbSteps) {
+        if (context.positions.size() == nbSteps) {
             // Uncompressed chunk
-            // Duplication of last value in order to include end datetime Period
-            stepValues.add(stepValues.getLast());
-            dataChunk = new UncompressedDoubleDataChunk(0, stepValues.stream().mapToDouble(d -> d).toArray());
+            dataChunk = new UncompressedDoubleDataChunk(0, context.quantities.stream().mapToDouble(d -> d).toArray());
         } else {
             // Compressed chunk
-            LinkedList<Integer> stepLengths = new LinkedList<>();
-            if (positions.size() > 1) {
-                for (int i = 1; i < positions.size(); i++) {
-                    int lastPosition = positions.get(i - 1);
-                    int newPosition = positions.get(i);
-                    stepLengths.addLast(newPosition - lastPosition);
+            int[] stepLengths = new int[context.positions.size()];
+            if (context.positions.size() > 1) {
+                for (int i = 1; i < context.positions.size(); i++) {
+                    int lastPosition = context.positions.get(i - 1);
+                    int newPosition = context.positions.get(i);
+                    stepLengths[i - 1] = newPosition - lastPosition;
                 }
-                stepLengths.addLast(1 + (nbSteps - positions.getLast()));
+                // Last step is computed from nbSteps and last position value
+                stepLengths[stepLengths.length - 1] = 1 + (nbSteps - context.positions.getLast());
             } else {
-                stepLengths.addLast(nbSteps);
+                stepLengths[0] = nbSteps;
             }
-            // Duplication of last value to include end datetime Period
-            nbSteps++;
-            stepLengths.addLast(stepLengths.removeLast() + 1);
-            dataChunk = new CompressedDoubleDataChunk(0, nbSteps, stepValues.stream().mapToDouble(d -> d).toArray(), stepLengths.stream().mapToInt(d -> d).toArray());
+            dataChunk = new CompressedDoubleDataChunk(0, nbSteps, context.quantities.stream().mapToDouble(d -> d).toArray(), stepLengths);
         }
 
-        // Instantiate new timeseries
-        TimeSeriesIndex index = RegularTimeSeriesIndex.create(start.get().toInstant(), end.get().toInstant(), spacing.get());
-        TimeSeriesMetadata metadata = new TimeSeriesMetadata(timeSeriesMRID.get(), TimeSeriesDataType.DOUBLE, tags, index);
-        // Add new timeseries into PevfExchanges
-        pevfExchanges.addTimeSeries(new StoredDoubleTimeSeries(metadata, dataChunk));
+        // Compute all instants of current time series
+        Instant[] instants = IntStream.iterate(0, i -> i + 1)
+                                      .limit(nbSteps)
+                                      .mapToObj(i -> context.period.getStart().plusMillis(i * context.spacing.toMillis()))
+                                      .toArray(Instant[]::new);
+        // Instantiate new time series
+        TimeSeriesIndex index = IrregularTimeSeriesIndex.create(instants);
+        TimeSeriesMetadata metadata = new TimeSeriesMetadata(context.mRID, TimeSeriesDataType.DOUBLE, context.tags, index);
+        // Add new time series into PevfExchanges
+        return new StoredDoubleTimeSeries(metadata, dataChunk);
     }
 
-    private static void readPeriod(XMLStreamReader reader, AtomicReference<ZonedDateTime> start, AtomicReference<ZonedDateTime> end, AtomicReference<Duration> spacing, LinkedList<Integer> positions, LinkedList<Double> quantities) throws XMLStreamException {
-        XmlUtil.readUntilEndElement(PERIOD_ELEMENT_NAME, reader, () -> {
-            switch (reader.getLocalName()) {
-                case RESOLUTION_ELEMENT_NAME:
-                    String resolution = reader.getElementText();
-                    spacing.set(Duration.parse(resolution));
+    private static void readPeriod(XMLStreamReader xmlReader, ParsingTimeSeriesContext context) throws XMLStreamException {
+        XmlUtil.readUntilEndElement(PERIOD, xmlReader, () -> {
+            switch (xmlReader.getLocalName()) {
+                case RESOLUTION:
+                    String resolution = xmlReader.getElementText();
+                    context.spacing = Duration.parse(resolution);
                     break;
 
-                case TIME_INTERVAL_ELEMENT_NAME:
-                    readTimeInterval(reader, TIME_INTERVAL_ELEMENT_NAME, start, end);
+                case TIME_INTERVAL:
+                    context.period = readTimeInterval(xmlReader, TIME_INTERVAL);
                     break;
 
-                case POINT_ELEMENT_NAME:
-                    readPoint(reader, positions, quantities);
+                case POINT:
+                    readPoint(xmlReader, context);
                     break;
 
                 default:
-                    LOGGER.warn(UNEXPECTED_TOKEN, reader.getLocalName());
+                    throw new PowsyblException(UNEXPECTED_TOKEN + xmlReader.getLocalName());
             }
         });
     }
 
-    private static void readTimeInterval(XMLStreamReader reader, String rootElement, AtomicReference<ZonedDateTime> start, AtomicReference<ZonedDateTime> end) throws XMLStreamException {
-        XmlUtil.readUntilEndElement(rootElement, reader, () -> {
-            switch (reader.getLocalName()) {
-                case START_ELEMENT_NAME :
-                    String periodStart = reader.getElementText();
-                    start.set(ZonedDateTime.parse(periodStart));
+    private static org.threeten.extra.Interval readTimeInterval(XMLStreamReader xmlReader, String rootElement) throws XMLStreamException {
+        ZonedDateTime[] interval = new ZonedDateTime[2];
+        XmlUtil.readUntilEndElement(rootElement, xmlReader, () -> {
+            switch (xmlReader.getLocalName()) {
+                case START :
+                    interval[0] = ZonedDateTime.parse(xmlReader.getElementText());
                     break;
 
-                case END_ELEMENT_NAME :
-                    String periodEnd = reader.getElementText();
-                    end.set(ZonedDateTime.parse(periodEnd));
+                case END :
+                    interval[1] = ZonedDateTime.parse(xmlReader.getElementText());
                     break;
 
                 default:
-                    LOGGER.warn(UNEXPECTED_TOKEN, reader.getLocalName());
+                    throw new PowsyblException(UNEXPECTED_TOKEN + xmlReader.getLocalName());
+            }
+        });
+        return org.threeten.extra.Interval.of(interval[0].toInstant(), interval[1].toInstant());
+    }
+
+    private static void readPoint(XMLStreamReader xmlReader, ParsingTimeSeriesContext context) throws XMLStreamException {
+        XmlUtil.readUntilEndElement(POINT, xmlReader, () -> {
+            switch (xmlReader.getLocalName()) {
+                case POSITION:
+                    context.positions.add(Integer.parseInt(xmlReader.getElementText()));
+                    break;
+
+                case QUANTITY:
+                    context.quantities.add(Double.parseDouble(xmlReader.getElementText()));
+                    break;
+
+                default:
+                    throw new PowsyblException(UNEXPECTED_TOKEN + xmlReader.getLocalName());
             }
         });
     }
 
-    private static void readPoint(XMLStreamReader reader, LinkedList<Integer> positions, LinkedList<Double> quantities) throws XMLStreamException {
-        XmlUtil.readUntilEndElement(POINT_ELEMENT_NAME, reader, () -> {
-            switch (reader.getLocalName()) {
-                case POSITION_ELEMENT_NAME:
-                    String position = reader.getElementText();
-                    positions.add(Integer.parseInt(position));
+    private static void readReason(XMLStreamReader xmlReader, ParsingTimeSeriesContext context) throws XMLStreamException {
+        XmlUtil.readUntilEndElement(REASON, xmlReader, () -> {
+            switch (xmlReader.getLocalName()) {
+                case CODE:
+                    context.code = xmlReader.getElementText();
                     break;
 
-                case QUANTITY_ELEMENT_NAME:
-                    String quantity = reader.getElementText();
-                    quantities.add(Double.parseDouble(quantity));
-                    break;
-
-                default:
-                    LOGGER.warn(UNEXPECTED_TOKEN, reader.getLocalName());
-            }
-        });
-    }
-
-    private static void readReason(XMLStreamReader reader, AtomicReference<String> code, AtomicReference<String> text) throws XMLStreamException {
-        XmlUtil.readUntilEndElement(REASON_ELEMENT_NAME, reader, () -> {
-            switch (reader.getLocalName()) {
-                case CODE_ELEMENT_NAME:
-                    code.set(reader.getElementText());
-                    break;
-
-                case TEXT_ELEMENT_NAME:
-                    text.set(reader.getElementText());
+                case TEXT:
+                    context.text = xmlReader.getElementText();
                     break;
 
                 default:
-                    LOGGER.warn(UNEXPECTED_TOKEN, reader.getLocalName());
+                    throw new PowsyblException(UNEXPECTED_TOKEN + xmlReader.getLocalName());
             }
         });
     }
