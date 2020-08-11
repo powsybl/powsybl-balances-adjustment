@@ -6,6 +6,7 @@
  */
 package com.powsybl.balances_adjustment.pevf;
 
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.timeseries.DoubleTimeSeries;
 import com.powsybl.timeseries.StoredDoubleTimeSeries;
 import org.junit.Rule;
@@ -29,11 +30,6 @@ public class PevfExchangesTest {
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
-
-    private static final double[] TIME_SERIES_1_VALUES = new double[] {0.000d};
-    private static final double[] TIME_SERIES_2_VALUES = new double[] {0.020d, 0.020d};
-    private static final double[] TIME_SERIES_3_VALUES = new double[] {0.000d, 0.250d, 0.500d, 0.750d};
-    private static final double[] TIME_SERIES_4_VALUES = new double[] {3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3926.042, 3926.042, 3926.042, 3926.042, 3926.042, 3924.460, 3924.460, 3924.460, 3924.460};
 
     @Test
     public void baseTests() throws XMLStreamException {
@@ -78,22 +74,51 @@ public class PevfExchangesTest {
         assertEquals("A03", timeSeries1.getMetadata().getTags().get("curveType"));
         // TimeSeries1 : values
         // Single step, single value
-        assertArrayEquals(TIME_SERIES_1_VALUES, timeSeries1.toArray(), 0.0d);
+        assertArrayEquals(new double[] {0.000d}, timeSeries1.toArray(), 0.0d);
 
         // TimeSeries2
         // Multi steps, single value
         DoubleTimeSeries timeSeries2 = exchanges.getTimeSeries("TimeSeries2");
-        assertArrayEquals(TIME_SERIES_2_VALUES, timeSeries2.toArray(), 0.0d);
+        assertArrayEquals(new double[] {0.020d, 0.020d}, timeSeries2.toArray(), 0.0d);
 
         // TimeSeries3
         // Each value defined
         DoubleTimeSeries timeSeries3 = exchanges.getTimeSeries("TimeSeries3");
-        assertArrayEquals(TIME_SERIES_3_VALUES, timeSeries3.toArray(), 0.0d);
+        assertArrayEquals(new double[] {0.000d, 0.250d, 0.500d, 0.750d}, timeSeries3.toArray(), 0.0d);
 
         // TimeSeries4
         // Each value not defined
         StoredDoubleTimeSeries timeSeries4 = exchanges.getTimeSeries("TimeSeries4");
-        assertArrayEquals(TIME_SERIES_4_VALUES, timeSeries4.toArray(), 0.0d);
+        double[] timeSeries4ExpectedValues = new double[] {3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3926.042, 3926.042, 3926.042, 3926.042, 3926.042, 3924.460, 3924.460, 3924.460, 3924.460};
+        assertArrayEquals(timeSeries4ExpectedValues, timeSeries4.toArray(), 0.0d);
+    }
+
+    @Test
+    public void utilitiesTests() throws XMLStreamException {
+        final InputStreamReader reader = new InputStreamReader(PevfExchangesTest.class.getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
+        final PevfExchanges exchanges = PevfExchangesXml.parse(reader);
+
+        assertEquals(4, exchanges.getTimeSeries().size());
+
+        assertEquals("TimeSeries1", exchanges.getTimeSeries("TimeSeries1").getMetadata().getName());
+
+        Map<String, Double> timeSeriesById = exchanges.getValuesAt("2020-04-05T21:17:12Z");
+        assertArrayEquals(new String[] {"TimeSeries2"}, timeSeriesById.keySet().toArray());
+        Iterator<Double> it = timeSeriesById.values().iterator();
+        assertTrue(it.hasNext());
+        assertEquals(0.02d, it.next(), 0.0d);
+
+        assertEquals(3924.46d, exchanges.getValueAt("TimeSeries4", "2020-04-05T22:17:12Z"), 0.0d);
+    }
+
+    @Test
+    public void notFoundTimeSeriesIdTest() throws XMLStreamException {
+        exception.expect(PowsyblException.class);
+        exception.expectMessage("'2020-04-05T21:17:12Z' not found into 'TimeSeries4'");
+
+        final InputStreamReader reader = new InputStreamReader(PevfExchangesTest.class.getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
+        final PevfExchanges exchanges = PevfExchangesXml.parse(reader);
+        exchanges.getValueAt("TimeSeries4", "2020-04-05T21:17:12Z");
     }
 
     @Test

@@ -6,9 +6,12 @@
  */
 package com.powsybl.balances_adjustment.pevf;
 
+import com.powsybl.commons.PowsyblException;
+import com.powsybl.timeseries.DoublePoint;
 import com.powsybl.timeseries.StoredDoubleTimeSeries;
 import org.threeten.extra.Interval;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
 
@@ -18,6 +21,10 @@ import java.util.*;
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
 public class PevfExchanges {
+
+    // RequireNonNull messages
+    private static final String INSTANT_CANNOT_BE_NULL = "Instant cannot be null";
+    private static final String ID_CANNOT_BE_NULL = "TimeSeriesId cannot be null";
 
     /** Document identification. */
     private String mRID;
@@ -51,7 +58,7 @@ public class PevfExchanges {
     private StandardStatusType docStatus;
 
     // Time Series
-    private final Map<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
+    private final HashMap<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
 
     PevfExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
                   String senderId, StandardCodingSchemeType senderCodingScheme, StandardRoleType senderMarketRole,
@@ -138,7 +145,48 @@ public class PevfExchanges {
     }
 
     // Utilities
-    public StoredDoubleTimeSeries getTimeSeries(String name) {
-        return timeSeriesById.get(name);
+    public Collection<StoredDoubleTimeSeries> getTimeSeries() {
+        return timeSeriesById.values();
+    }
+
+    public StoredDoubleTimeSeries getTimeSeries(String timeSeriesId) {
+        Objects.requireNonNull(timeSeriesId, ID_CANNOT_BE_NULL);
+        return timeSeriesById.get(timeSeriesId);
+    }
+
+    public Map<String, Double> getValuesAt(Instant instant) {
+        Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
+
+        Map<String, Double> valueById = new HashMap<>();
+        timeSeriesById.forEach((name, timeSeries) -> {
+            try {
+                valueById.put(name, getValueAt(name, instant));
+            } catch (PowsyblException ignored) {
+                // Ignored
+            }
+        });
+        return valueById;
+    }
+
+    public Map<String, Double> getValuesAt(String instant) {
+        Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
+        return getValuesAt(ZonedDateTime.parse(instant).toInstant());
+    }
+
+    public double getValueAt(String timeSeriesId, Instant instant) {
+        Objects.requireNonNull(timeSeriesId, ID_CANNOT_BE_NULL);
+        Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
+
+        // Filtering by Lower bound
+        return timeSeriesById.get(timeSeriesId).stream()
+                .reduce((p1, p2) -> Math.abs(p1.getTime() - instant.toEpochMilli()) < Math.abs(p2.getTime() - instant.toEpochMilli()) ? p1 : p2)
+                .filter(p -> instant.toEpochMilli() >= p.getTime())
+                .map(DoublePoint::getValue)
+                .orElseThrow(() -> new PowsyblException(String.format("'%s' not found into '%s'", instant, timeSeriesId)));
+    }
+
+    public double getValueAt(String timeSeriesId, String instant) {
+        Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
+        return getValueAt(timeSeriesId, ZonedDateTime.parse(instant).toInstant());
     }
 }
