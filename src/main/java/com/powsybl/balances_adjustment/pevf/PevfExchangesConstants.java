@@ -11,7 +11,7 @@ package com.powsybl.balances_adjustment.pevf;
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public final class PevfExchangesNames {
+public final class PevfExchangesConstants {
 
     // Metadata
     static final String ROOT = "ReportingInformation_MarketDocument";
@@ -49,6 +49,6 @@ public final class PevfExchangesNames {
     static final String CODE = "code";
     static final String TEXT = "text";
 
-    private PevfExchangesNames() {
+    private PevfExchangesConstants() {
     }
 }

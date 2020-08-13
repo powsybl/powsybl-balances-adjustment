@@ -26,7 +26,16 @@ public enum StandardRoleType {
      * Refer to role model definitions in the ENTSO-E Harmonised Role Model Document.
      * A party, not necessarily a market participant, which receives information about the market.
      */
-    A33("Information receiver");
+    A33("Information receiver"),
+    /**
+     * Refer to role model definitions in the ENTSO-E Harmonised Role Model Document.
+     * A party, acting on behalf of the SOs involved, responsible for establishing a coordinated Offered Capacity and/or NTC and/or ATC between several Market Balance Areas.
+     */
+    A36("Capacity Coordinator"),
+    /**
+     * The RSC as defined in the System Operation guideline.
+     */
+    A44("Regional Security Coordinator (RSC)");
 
     private final String description;
 

@@ -22,6 +22,12 @@ public enum StandardReasonCodeType {
      */
     A26("Default Time Series applied"),
     /**
+    * This provides an indication that the time series has not got a counterpart time series.
+    * In the case of an Intermediate Confirmation Report this is advising the recipient that the time series may be rejected at nomination closure if the counterpart time series is not received.
+    * In the case of a Final Confirmation Report this is informing the recipient that the time series has been rejected because the counterpart time series has not been forthcoming. </Definition>
+    */
+    A28("Counterpart time series missing"),
+    /**
      * The nominated party's time series has replaced the current time series.
      * This reason code may not be used in conjunction with A26.
      */

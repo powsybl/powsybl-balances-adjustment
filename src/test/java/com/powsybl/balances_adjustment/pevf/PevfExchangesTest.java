@@ -9,13 +9,14 @@ package com.powsybl.balances_adjustment.pevf;
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.timeseries.DoubleTimeSeries;
 import com.powsybl.timeseries.StoredDoubleTimeSeries;
+import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import javax.xml.stream.XMLStreamException;
 import java.io.*;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -31,11 +32,15 @@ public class PevfExchangesTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    @Test
-    public void baseTests() throws XMLStreamException {
-        final InputStreamReader reader = new InputStreamReader(PevfExchangesTest.class.getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
-        final PevfExchanges exchanges = PevfExchangesXml.parse(reader);
+    private PevfExchanges exchanges;
 
+    @Before
+    public void setUp() {
+        exchanges = PevfExchangesXml.parse(getClass().getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
+    }
+
+    @Test
+    public void baseTests() {
         // Getters
         assertEquals("MarketDocument_MRID", exchanges.getMRId());
         assertEquals(1, exchanges.getRevisionNumber());
@@ -47,18 +52,16 @@ public class PevfExchangesTest {
         assertEquals("ReceiverMarket", exchanges.getReceiverId());
         assertEquals(StandardCodingSchemeType.A01, exchanges.getReceiverCodingScheme());
         assertEquals(StandardRoleType.A33, exchanges.getReceiverMarketRole());
-        assertEquals(ZonedDateTime.parse("2020-04-05T14:30:00Z"), exchanges.getCreationDate());
-        assertEquals(ZonedDateTime.parse("2020-04-05T22:00Z").toInstant(), exchanges.getPeriod().getStart());
-        assertEquals(ZonedDateTime.parse("2020-04-06T22:00Z").toInstant(), exchanges.getPeriod().getEnd());
+        assertEquals(DateTime.parse("2020-04-05T14:30:00Z"), exchanges.getCreationDate());
+        assertEquals(DateTime.parse("2020-04-05T22:00Z"), exchanges.getPeriod().getStart());
+        assertEquals(DateTime.parse("2020-04-06T22:00Z"), exchanges.getPeriod().getEnd());
         // Optional
         assertEquals(Optional.of("PEVF CGM Export"), exchanges.getDatasetMarketDocumentMRId());
         assertEquals(Optional.of(StandardStatusType.A01), exchanges.getDocStatus());
     }
 
     @Test
-    public void timeSeriesTests() throws XMLStreamException {
-        final InputStreamReader reader = new InputStreamReader(PevfExchangesTest.class.getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
-        final PevfExchanges exchanges = PevfExchangesXml.parse(reader);
+    public void timeSeriesTests() {
         // Time Series
         DoubleTimeSeries timeSeries1 = exchanges.getTimeSeries("TimeSeries1");
         // TimeSeries1 : Check metadata
@@ -74,51 +77,58 @@ public class PevfExchangesTest {
         assertEquals("A03", timeSeries1.getMetadata().getTags().get("curveType"));
         // TimeSeries1 : values
         // Single step, single value
-        assertArrayEquals(new double[] {0.000d}, timeSeries1.toArray(), 0.0d);
+        assertArrayEquals(new double[] {0.000d, Double.NaN}, timeSeries1.toArray(), 0.0d);
 
         // TimeSeries2
         // Multi steps, single value
         DoubleTimeSeries timeSeries2 = exchanges.getTimeSeries("TimeSeries2");
-        assertArrayEquals(new double[] {0.020d, 0.020d}, timeSeries2.toArray(), 0.0d);
+        assertArrayEquals(new double[] {0.020d, 0.020d, Double.NaN}, timeSeries2.toArray(), 0.0d);
 
         // TimeSeries3
         // Each value defined
         DoubleTimeSeries timeSeries3 = exchanges.getTimeSeries("TimeSeries3");
-        assertArrayEquals(new double[] {0.000d, 0.250d, 0.500d, 0.750d}, timeSeries3.toArray(), 0.0d);
+        assertArrayEquals(new double[] {0.000d, 0.250d, 0.500d, 0.750d, Double.NaN}, timeSeries3.toArray(), 0.0d);
 
         // TimeSeries4
         // Each value not defined
         StoredDoubleTimeSeries timeSeries4 = exchanges.getTimeSeries("TimeSeries4");
-        double[] timeSeries4ExpectedValues = new double[] {3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3926.042, 3926.042, 3926.042, 3926.042, 3926.042, 3924.460, 3924.460, 3924.460, 3924.460};
+        double[] timeSeries4ExpectedValues = new double[] {3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3926.042, 3926.042, 3926.042, 3926.042, 3926.042, 3924.460, 3924.460, 3924.460, 3924.460, Double.NaN};
         assertArrayEquals(timeSeries4ExpectedValues, timeSeries4.toArray(), 0.0d);
     }
 
     @Test
-    public void utilitiesTests() throws XMLStreamException {
-        final InputStreamReader reader = new InputStreamReader(PevfExchangesTest.class.getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
-        final PevfExchanges exchanges = PevfExchangesXml.parse(reader);
-
-        assertEquals(4, exchanges.getTimeSeries().size());
+    public void utilitiesTests() {
+        assertEquals(5, exchanges.getTimeSeries().size());
 
         assertEquals("TimeSeries1", exchanges.getTimeSeries("TimeSeries1").getMetadata().getName());
 
-        Map<String, Double> timeSeriesById = exchanges.getValuesAt("2020-04-05T21:17:12Z");
+        Map<String, Double> timeSeriesById = exchanges.getValuesAt(Instant.parse("2020-04-05T21:17:12.000Z"));
         assertArrayEquals(new String[] {"TimeSeries2"}, timeSeriesById.keySet().toArray());
         Iterator<Double> it = timeSeriesById.values().iterator();
         assertTrue(it.hasNext());
         assertEquals(0.02d, it.next(), 0.0d);
 
-        assertEquals(3924.46d, exchanges.getValueAt("TimeSeries4", "2020-04-05T22:17:12Z"), 0.0d);
+        assertEquals(3924.46d, exchanges.getValueAt("TimeSeries4", Instant.parse("2020-04-05T22:14:00.000Z")), 0.0d);
+        assertEquals(3924.46d, exchanges.getValueAt("TimeSeries4", Instant.parse("2020-04-05T22:14:59.000Z")), 0.0d);
+
+        assertEquals(35, exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-17T22:00:00.000Z")), 0.0);
+        assertEquals(35, exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-17T23:00:00.000Z")), 0.0);
+        assertEquals(15, exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-18T01:00:00.000Z")), 0.0);
+        assertEquals(15, exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-18T01:30:00.000Z")), 0.0);
     }
 
     @Test
-    public void notFoundTimeSeriesIdTest() throws XMLStreamException {
+    public void timeSeriesEndTest() {
         exception.expect(PowsyblException.class);
-        exception.expectMessage("'2020-04-05T21:17:12Z' not found into 'TimeSeries4'");
+        exception.expectMessage("2019-06-18T22:00:00Z' not found into 'TimeSeries5'");
+        exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-18T22:00:00.000Z"));
+    }
 
-        final InputStreamReader reader = new InputStreamReader(PevfExchangesTest.class.getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
-        final PevfExchanges exchanges = PevfExchangesXml.parse(reader);
-        exchanges.getValueAt("TimeSeries4", "2020-04-05T21:17:12Z");
+    @Test
+    public void timeSeriesAfterEndTest() {
+        exception.expect(PowsyblException.class);
+        exception.expectMessage("2019-06-19T00:00:00Z' not found into 'TimeSeries5");
+        exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-19T00:00:00.000Z"));
     }
 
     @Test
@@ -129,7 +139,7 @@ public class PevfExchangesTest {
         new PevfExchanges("", -1, StandardMessageType.B19, StandardProcessType.A01,
                  "", StandardCodingSchemeType.A01, StandardRoleType.A32,
                 "", StandardCodingSchemeType.A02, StandardRoleType.A33,
-                          ZonedDateTime.now(), null, "", StandardStatusType.A01, null);
+                          DateTime.now(), null, "", StandardStatusType.A01, null);
     }
 
     @Test
@@ -141,9 +151,12 @@ public class PevfExchangesTest {
         assertEquals("Reporting information market document", StandardMessageType.B19.getDescription());
         // StandardProcessType
         assertEquals("Day ahead", StandardProcessType.A01.getDescription());
+        assertEquals("Total intraday", StandardProcessType.A18.getDescription());
         // StandardRoleType
         assertEquals("Market information aggregator", StandardRoleType.A32.getDescription());
         assertEquals("Information receiver", StandardRoleType.A33.getDescription());
+        assertEquals("Capacity Coordinator", StandardRoleType.A36.getDescription());
+        assertEquals("Regional Security Coordinator (RSC)", StandardRoleType.A44.getDescription());
         // StandardStatusType
         assertEquals("Intermediate", StandardStatusType.A01.getDescription());
         assertEquals("Final", StandardStatusType.A02.getDescription());
@@ -152,6 +165,7 @@ public class PevfExchangesTest {
         assertEquals("Meter Measurement data", StandardBusinessType.B64.getDescription());
         // StandardCodeType
         assertEquals("Default Time Series applied", StandardReasonCodeType.A26.getDescription());
+        assertEquals("Counterpart time series missing", StandardReasonCodeType.A28.getDescription());
         assertEquals("Imposed Time Series from nominated party’s Time Series", StandardReasonCodeType.A30.getDescription());
         assertEquals("Global position not in balance", StandardReasonCodeType.A54.getDescription());
         assertEquals("Time series matched", StandardReasonCodeType.A88.getDescription());

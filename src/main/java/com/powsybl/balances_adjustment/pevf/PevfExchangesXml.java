@@ -10,6 +10,8 @@ import com.powsybl.commons.PowsyblException;
 import com.powsybl.commons.exceptions.UncheckedXmlStreamException;
 import com.powsybl.commons.xml.XmlUtil;
 import com.powsybl.timeseries.*;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,14 +19,14 @@ import javax.xml.XMLConstants;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.IntStream;
 
-import static com.powsybl.balances_adjustment.pevf.PevfExchangesNames.*;
+import static com.powsybl.balances_adjustment.pevf.PevfExchangesConstants.*;
 
 /**
  * Pan European Verification Function XML parser.
@@ -43,15 +45,15 @@ public final class PevfExchangesXml {
 
     private static class ParsingContext {
 
-        private Map<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
+        private final Map<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
 
         private StandardStatusType docStatus;
 
         private String datasetMarketDocumentMRId;
 
-        private org.threeten.extra.Interval period;
+        private Interval period;
 
-        private ZonedDateTime creationDate;
+        private DateTime creationDate;
 
         private StandardRoleType receiverMarketRole;
 
@@ -78,22 +80,26 @@ public final class PevfExchangesXml {
 
         private String mRID;
 
-        private  org.threeten.extra.Interval period;
+        private Interval period;
 
         private Duration spacing;
 
-        private LinkedList<Integer> positions = new LinkedList<>();
+        private final List<Integer> positions = new ArrayList<>();
 
-        private LinkedList<Double> quantities = new LinkedList<>();
+        private final List<Double> quantities = new ArrayList<>();
 
-        private Map<String, String> tags = new HashMap<>();
+        private final Map<String, String> tags = new HashMap<>();
 
         private String code;
 
         private String text;
     }
 
-    public static PevfExchanges parse(Reader reader) throws XMLStreamException {
+    public static PevfExchanges parse(InputStream stream) {
+        return parse(new InputStreamReader(stream));
+    }
+
+    public static PevfExchanges parse(Reader reader) {
         Objects.requireNonNull(reader);
         ParsingContext context = new ParsingContext();
         try {
@@ -144,7 +150,7 @@ public final class PevfExchangesXml {
                             break;
 
                         case CREATION_DATETIME:
-                            context.creationDate = ZonedDateTime.parse(xmlReader.getElementText());
+                            context.creationDate = DateTime.parse(xmlReader.getElementText());
                             break;
 
                         case TIME_PERIOD_INTERVAL:
@@ -223,7 +229,7 @@ public final class PevfExchangesXml {
         });
 
         // Log TimeSeries Reason
-        if (LOGGER.isInfoEnabled()) {
+        if (LOGGER.isInfoEnabled() && Objects.nonNull(context.code) && Objects.nonNull(context.text)) {
             LOGGER.info("TimeSeries '{}' [{}, {}] - {} ({}) : {}",  context.mRID,
                                                                     context.period.getStart(), context.period.getEnd(),
                                                                     context.code,
@@ -232,9 +238,9 @@ public final class PevfExchangesXml {
         }
 
         // Create DataChunk
-        DoubleDataChunk dataChunk = null;
+        DoubleDataChunk dataChunk;
         // Computed number of steps
-        int nbSteps = (int) ((context.period.getEnd().toEpochMilli() - context.period.getStart().toEpochMilli()) / context.spacing.toMillis());
+        int nbSteps = (int) ((context.period.getEnd().getMillis() - context.period.getStart().getMillis()) / context.spacing.toMillis());
         // Check if all steps are defined or not
         if (context.positions.size() == nbSteps) {
             // Uncompressed chunk
@@ -249,20 +255,15 @@ public final class PevfExchangesXml {
                     stepLengths[i - 1] = newPosition - lastPosition;
                 }
                 // Last step is computed from nbSteps and last position value
-                stepLengths[stepLengths.length - 1] = 1 + (nbSteps - context.positions.getLast());
+                stepLengths[stepLengths.length - 1] = 1 + (nbSteps - context.positions.get(context.positions.size() - 1));
             } else {
                 stepLengths[0] = nbSteps;
             }
             dataChunk = new CompressedDoubleDataChunk(0, nbSteps, context.quantities.stream().mapToDouble(d -> d).toArray(), stepLengths);
         }
 
-        // Compute all instants of current time series
-        Instant[] instants = IntStream.iterate(0, i -> i + 1)
-                                      .limit(nbSteps)
-                                      .mapToObj(i -> context.period.getStart().plusMillis(i * context.spacing.toMillis()))
-                                      .toArray(Instant[]::new);
         // Instantiate new time series
-        TimeSeriesIndex index = IrregularTimeSeriesIndex.create(instants);
+        TimeSeriesIndex index = RegularTimeSeriesIndex.create(Instant.ofEpochMilli(context.period.getStartMillis()), Instant.ofEpochMilli(context.period.getEndMillis()), context.spacing);
         TimeSeriesMetadata metadata = new TimeSeriesMetadata(context.mRID, TimeSeriesDataType.DOUBLE, context.tags, index);
         // Add new time series into PevfExchanges
         return new StoredDoubleTimeSeries(metadata, dataChunk);
@@ -290,23 +291,23 @@ public final class PevfExchangesXml {
         });
     }
 
-    private static org.threeten.extra.Interval readTimeInterval(XMLStreamReader xmlReader, String rootElement) throws XMLStreamException {
-        ZonedDateTime[] interval = new ZonedDateTime[2];
+    private static Interval readTimeInterval(XMLStreamReader xmlReader, String rootElement) throws XMLStreamException {
+        DateTime[] interval = new DateTime[2];
         XmlUtil.readUntilEndElement(rootElement, xmlReader, () -> {
             switch (xmlReader.getLocalName()) {
                 case START :
-                    interval[0] = ZonedDateTime.parse(xmlReader.getElementText());
+                    interval[0] = DateTime.parse(xmlReader.getElementText());
                     break;
 
                 case END :
-                    interval[1] = ZonedDateTime.parse(xmlReader.getElementText());
+                    interval[1] = DateTime.parse(xmlReader.getElementText());
                     break;
 
                 default:
                     throw new PowsyblException(UNEXPECTED_TOKEN + xmlReader.getLocalName());
             }
         });
-        return org.threeten.extra.Interval.of(interval[0].toInstant(), interval[1].toInstant());
+        return new Interval(interval[0], interval[1]);
     }
 
     private static void readPoint(XMLStreamReader xmlReader, ParsingTimeSeriesContext context) throws XMLStreamException {

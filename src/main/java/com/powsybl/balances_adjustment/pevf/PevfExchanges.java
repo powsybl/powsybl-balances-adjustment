@@ -7,12 +7,12 @@
 package com.powsybl.balances_adjustment.pevf;
 
 import com.powsybl.commons.PowsyblException;
-import com.powsybl.timeseries.DoublePoint;
-import com.powsybl.timeseries.StoredDoubleTimeSeries;
-import org.threeten.extra.Interval;
+import com.powsybl.timeseries.*;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
@@ -27,35 +27,35 @@ public class PevfExchanges {
     private static final String ID_CANNOT_BE_NULL = "TimeSeriesId cannot be null";
 
     /** Document identification. */
-    private String mRID;
+    private final String mRID;
     /** Version of the document. */
-    private int revisionNumber;
+    private final int revisionNumber;
     /** The coded type of a document. The document type describes the principal characteristic of the document. */
-    private StandardMessageType type;
+    private final StandardMessageType type;
     /** The identification of the nature of process that the
      document addresses. */
-    private StandardProcessType processType;
+    private final StandardProcessType processType;
     /** The identification of the sender */
-    private String senderId;
-    private StandardCodingSchemeType senderCodingScheme;
+    private final String senderId;
+    private final StandardCodingSchemeType senderCodingScheme;
     /** The identification of the role played by a market player. */
-    private StandardRoleType senderMarketRole;
+    private final StandardRoleType senderMarketRole;
     /** The identification of a party in the energy market. */
-    private String receiverId;
-    private StandardCodingSchemeType receiverCodingScheme;
+    private final String receiverId;
+    private final StandardCodingSchemeType receiverCodingScheme;
     /** The identification of the role played by the a market player. */
-    private StandardRoleType receiverMarketRole;
+    private final StandardRoleType receiverMarketRole;
     /** The date and time of the creation of the document. */
-    private ZonedDateTime creationDate;
+    private final DateTime creationDate;
     /** This information provides the start and end date and time of the period covered by the document. */
-    private org.threeten.extra.Interval period;
+    private final Interval period;
 
     // Optional data
     /** The identification of an individually predefined dataset in a
      data base system (e. g. Verification Platform). */
-    private String datasetMarketDocumentMRId;
+    private final String datasetMarketDocumentMRId;
     /** The identification of the condition or position of the document with regard to its standing. A document may be intermediate or final. */
-    private StandardStatusType docStatus;
+    private final StandardStatusType docStatus;
 
     // Time Series
     private final HashMap<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
@@ -63,7 +63,7 @@ public class PevfExchanges {
     PevfExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
                   String senderId, StandardCodingSchemeType senderCodingScheme, StandardRoleType senderMarketRole,
                   String receiverId, StandardCodingSchemeType receiverCodingScheme, StandardRoleType receiverMarketRole,
-                  ZonedDateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<String, StoredDoubleTimeSeries> timeSeriesById) {
+                  DateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<String, StoredDoubleTimeSeries> timeSeriesById) {
         this.mRID = Objects.requireNonNull(mRID, "mRID is missing");
 
         if (revisionNumber < 0 || revisionNumber > 100) {
@@ -127,11 +127,11 @@ public class PevfExchanges {
         return receiverMarketRole;
     }
 
-    public ZonedDateTime getCreationDate() {
+    public DateTime getCreationDate() {
         return creationDate;
     }
 
-    public org.threeten.extra.Interval getPeriod() {
+    public Interval getPeriod() {
         return period;
     }
 
@@ -158,35 +158,29 @@ public class PevfExchanges {
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         Map<String, Double> valueById = new HashMap<>();
-        timeSeriesById.forEach((name, timeSeries) -> {
-            try {
-                valueById.put(name, getValueAt(name, instant));
-            } catch (PowsyblException ignored) {
-                // Ignored
-            }
-        });
+        timeSeriesById.forEach((timeSeriesId, timeSeries) -> getValueAt(timeSeriesById.get(timeSeriesId), instant).ifPresent(value -> valueById.put(timeSeriesId, value)));
         return valueById;
-    }
-
-    public Map<String, Double> getValuesAt(String instant) {
-        Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
-        return getValuesAt(ZonedDateTime.parse(instant).toInstant());
     }
 
     public double getValueAt(String timeSeriesId, Instant instant) {
         Objects.requireNonNull(timeSeriesId, ID_CANNOT_BE_NULL);
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
-        // Filtering by Lower bound
-        return timeSeriesById.get(timeSeriesId).stream()
-                .reduce((p1, p2) -> Math.abs(p1.getTime() - instant.toEpochMilli()) < Math.abs(p2.getTime() - instant.toEpochMilli()) ? p1 : p2)
-                .filter(p -> instant.toEpochMilli() >= p.getTime())
-                .map(DoublePoint::getValue)
-                .orElseThrow(() -> new PowsyblException(String.format("'%s' not found into '%s'", instant, timeSeriesId)));
+        final DoubleTimeSeries timeSeries = timeSeriesById.get(timeSeriesId);
+        return getValueAt(timeSeries, instant).orElseThrow(() -> new PowsyblException(String.format("'%s' not found into '%s'", instant, timeSeriesId)));
     }
 
-    public double getValueAt(String timeSeriesId, String instant) {
-        Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
-        return getValueAt(timeSeriesId, ZonedDateTime.parse(instant).toInstant());
+    private Optional<Double> getValueAt(DoubleTimeSeries timeSeries, Instant instant) {
+        Optional<Double> result = Optional.empty();
+        RegularTimeSeriesIndex index = (RegularTimeSeriesIndex) timeSeries.getMetadata().getIndex();
+        Instant start = Instant.ofEpochMilli(index.getStartTime());
+        Instant end = Instant.ofEpochMilli(index.getEndTime());
+        if (!instant.isBefore(start) && !instant.isAfter(end) && !instant.equals(end)) {
+            long spacing = index.getSpacing();
+            Duration elapsed = Duration.between(start, instant);
+            long point = elapsed.toMillis() / spacing;
+            result = Optional.of(timeSeries.toArray()[(int) point]);
+        }
+        return result;
     }
 }
