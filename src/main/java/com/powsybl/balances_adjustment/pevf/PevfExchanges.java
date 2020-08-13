@@ -166,8 +166,8 @@ public class PevfExchanges {
         Objects.requireNonNull(timeSeriesId, ID_CANNOT_BE_NULL);
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
-        final DoubleTimeSeries timeSeries = timeSeriesById.get(timeSeriesId);
-        return getValueAt(timeSeries, instant).orElseThrow(() -> new PowsyblException(String.format("'%s' not found into '%s'", instant, timeSeriesId)));
+        final StoredDoubleTimeSeries timeSeries = timeSeriesById.get(timeSeriesId);
+        return getValueAt(timeSeries, instant).orElseThrow(() -> new PowsyblException(String.format("%s '%s' is out of bound", timeSeriesId, instant)));
     }
 
     private Optional<Double> getValueAt(DoubleTimeSeries timeSeries, Instant instant) {
