@@ -14,6 +14,7 @@ import org.joda.time.Interval;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Pan European Verification Function data.
@@ -145,11 +146,11 @@ public class PevfExchanges {
     }
 
     // Utilities
-    public Collection<StoredDoubleTimeSeries> getTimeSeries() {
-        return timeSeriesById.values();
+    public Collection<DoubleTimeSeries> getTimeSeries() {
+        return timeSeriesById.values().stream().map(DoubleTimeSeries.class::cast).collect(Collectors.toList());
     }
 
-    public StoredDoubleTimeSeries getTimeSeries(String timeSeriesId) {
+    public DoubleTimeSeries getTimeSeries(String timeSeriesId) {
         Objects.requireNonNull(timeSeriesId, ID_CANNOT_BE_NULL);
         return timeSeriesById.get(timeSeriesId);
     }
@@ -158,7 +159,7 @@ public class PevfExchanges {
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         Map<String, Double> valueById = new HashMap<>();
-        timeSeriesById.forEach((timeSeriesId, timeSeries) -> getValueAt(timeSeriesById.get(timeSeriesId), instant).ifPresent(value -> valueById.put(timeSeriesId, value)));
+        timeSeriesById.forEach((timeSeriesId, timeSeries) -> valueById.put(timeSeriesId, getValueAt(timeSeriesById.get(timeSeriesId), instant)));
         return valueById;
     }
 
@@ -167,20 +168,33 @@ public class PevfExchanges {
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         final StoredDoubleTimeSeries timeSeries = timeSeriesById.get(timeSeriesId);
-        return getValueAt(timeSeries, instant).orElseThrow(() -> new PowsyblException(String.format("%s '%s' is out of bound", timeSeriesId, instant)));
+        return getValueAt(timeSeries, instant);
     }
 
-    private Optional<Double> getValueAt(DoubleTimeSeries timeSeries, Instant instant) {
-        Optional<Double> result = Optional.empty();
+    public Map<String, Double> getValueAt(List<String> timeSeriesIds, Instant instant) {
+        Objects.requireNonNull(timeSeriesIds, ID_CANNOT_BE_NULL);
+        Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
+        final Map<String, Double> valueById = new HashMap<>();
+        timeSeriesIds.forEach(timeSeriesId -> valueById.put(timeSeriesId, getValueAt(timeSeriesId, instant)));
+        return valueById;
+    }
+
+    public Map<String, Double> getValueAt(String[] timeSeriesIds, Instant instant) {
+        return getValueAt(Arrays.asList(timeSeriesIds), instant);
+    }
+
+    private double getValueAt(DoubleTimeSeries timeSeries, Instant instant) {
         RegularTimeSeriesIndex index = (RegularTimeSeriesIndex) timeSeries.getMetadata().getIndex();
         Instant start = Instant.ofEpochMilli(index.getStartTime());
         Instant end = Instant.ofEpochMilli(index.getEndTime());
-        if (!instant.isBefore(start) && !instant.isAfter(end) && !instant.equals(end)) {
+
+        if (instant.isBefore(start) || instant.isAfter(end) || instant.equals(end)) {
+            throw new PowsyblException(String.format("%s '%s' is out of bound", timeSeries.getMetadata().getName(), instant));
+        } else {
             long spacing = index.getSpacing();
             Duration elapsed = Duration.between(start, instant);
             long point = elapsed.toMillis() / spacing;
-            result = Optional.of(timeSeries.toArray()[(int) point]);
+            return timeSeries.toArray()[(int) point];
         }
-        return result;
     }
 }

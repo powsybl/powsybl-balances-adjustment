@@ -40,9 +40,6 @@ public final class PevfExchangesXml {
     // Log messages
     private static final String UNEXPECTED_TOKEN = "Unexpected token: ";
 
-    private PevfExchangesXml() {
-    }
-
     private static class ParsingContext {
 
         private final Map<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
@@ -342,5 +339,8 @@ public final class PevfExchangesXml {
                     throw new PowsyblException(UNEXPECTED_TOKEN + xmlReader.getLocalName());
             }
         });
+    }
+
+    private PevfExchangesXml() {
     }
 }

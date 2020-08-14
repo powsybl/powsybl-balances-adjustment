@@ -8,14 +8,12 @@ package com.powsybl.balances_adjustment.pevf;
 
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.timeseries.DoubleTimeSeries;
-import com.powsybl.timeseries.StoredDoubleTimeSeries;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.*;
 import java.time.Instant;
 import java.util.*;
 
@@ -91,7 +89,7 @@ public class PevfExchangesTest {
 
         // TimeSeries4
         // Each value not defined
-        StoredDoubleTimeSeries timeSeries4 = exchanges.getTimeSeries("TimeSeries4");
+        DoubleTimeSeries timeSeries4 = exchanges.getTimeSeries("TimeSeries4");
         double[] timeSeries4ExpectedValues = new double[] {3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3926.042, 3926.042, 3926.042, 3926.042, 3926.042, 3924.460, 3924.460, 3924.460, 3924.460, Double.NaN};
         assertArrayEquals(timeSeries4ExpectedValues, timeSeries4.toArray(), 0.0d);
     }
@@ -102,8 +100,8 @@ public class PevfExchangesTest {
 
         assertEquals("TimeSeries1", exchanges.getTimeSeries("TimeSeries1").getMetadata().getName());
 
-        Map<String, Double> timeSeriesById = exchanges.getValuesAt(Instant.parse("2020-04-05T21:17:12.000Z"));
-        assertArrayEquals(new String[] {"TimeSeries2"}, timeSeriesById.keySet().toArray());
+        Map<String, Double> timeSeriesById = exchanges.getValuesAt(Instant.parse("2020-04-05T22:14:12.000Z"));
+        assertEquals(5, timeSeriesById.keySet().size());
         Iterator<Double> it = timeSeriesById.values().iterator();
         assertTrue(it.hasNext());
         assertEquals(0.02d, it.next(), 0.0d);
@@ -111,10 +109,15 @@ public class PevfExchangesTest {
         assertEquals(3924.46d, exchanges.getValueAt("TimeSeries4", Instant.parse("2020-04-05T22:14:00.000Z")), 0.0d);
         assertEquals(3924.46d, exchanges.getValueAt("TimeSeries4", Instant.parse("2020-04-05T22:14:59.000Z")), 0.0d);
 
-        assertEquals(35, exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-17T22:00:00.000Z")), 0.0);
-        assertEquals(35, exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-17T23:00:00.000Z")), 0.0);
-        assertEquals(15, exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-18T01:00:00.000Z")), 0.0);
-        assertEquals(15, exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-18T01:30:00.000Z")), 0.0);
+        assertEquals(35, exchanges.getValueAt("TimeSeries5", Instant.parse("2020-04-05T22:00:00.000Z")), 0.0);
+        assertEquals(35, exchanges.getValueAt("TimeSeries5", Instant.parse("2020-04-05T23:00:00.000Z")), 0.0);
+        assertEquals(15, exchanges.getValueAt("TimeSeries5", Instant.parse("2020-04-06T01:00:00.000Z")), 0.0);
+        assertEquals(15, exchanges.getValueAt("TimeSeries5", Instant.parse("2020-04-06T01:30:00.000Z")), 0.0);
+
+        timeSeriesById = exchanges.getValueAt(new String[] {"TimeSeries1", "TimeSeries5"}, Instant.parse("2020-04-05T22:00:00.000Z"));
+        assertEquals(2, timeSeriesById.keySet().size());
+        assertEquals(0.0d, timeSeriesById.get("TimeSeries1"), 0.0d);
+        assertEquals(35.0d, timeSeriesById.get("TimeSeries5"), 0.0d);
     }
 
     @Test
