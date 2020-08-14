@@ -152,6 +152,9 @@ public class PevfExchanges {
 
     public DoubleTimeSeries getTimeSeries(String timeSeriesId) {
         Objects.requireNonNull(timeSeriesId, ID_CANNOT_BE_NULL);
+        if (!timeSeriesById.containsKey(timeSeriesId)) {
+            throw new PowsyblException(String.format("TimeSeries '%s' not found", timeSeriesId));
+        }
         return timeSeriesById.get(timeSeriesId);
     }
 
@@ -159,7 +162,7 @@ public class PevfExchanges {
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         Map<String, Double> valueById = new HashMap<>();
-        timeSeriesById.forEach((timeSeriesId, timeSeries) -> valueById.put(timeSeriesId, getValueAt(timeSeriesById.get(timeSeriesId), instant)));
+        timeSeriesById.forEach((timeSeriesId, timeSeries) -> valueById.put(timeSeriesId, getValueAt(getTimeSeries(timeSeriesId), instant)));
         return valueById;
     }
 
@@ -167,7 +170,7 @@ public class PevfExchanges {
         Objects.requireNonNull(timeSeriesId, ID_CANNOT_BE_NULL);
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
-        final StoredDoubleTimeSeries timeSeries = timeSeriesById.get(timeSeriesId);
+        final DoubleTimeSeries timeSeries = getTimeSeries(timeSeriesId);
         return getValueAt(timeSeries, instant);
     }
 

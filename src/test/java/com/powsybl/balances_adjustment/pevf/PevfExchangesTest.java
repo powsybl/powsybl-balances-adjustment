@@ -121,6 +121,13 @@ public class PevfExchangesTest {
     }
 
     @Test
+    public void timeSeriesNotFoundTest() {
+        exception.expect(PowsyblException.class);
+        exception.expectMessage("TimeSeries 'Unknown' not found");
+        exchanges.getTimeSeries("Unknown");
+    }
+
+    @Test
     public void timeSeriesEndTest() {
         exception.expect(PowsyblException.class);
         exception.expectMessage("TimeSeries5 '2019-06-18T22:00:00Z' is out of bound");
