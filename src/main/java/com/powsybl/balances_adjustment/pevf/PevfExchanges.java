@@ -26,6 +26,7 @@ public class PevfExchanges {
     // RequireNonNull messages
     private static final String INSTANT_CANNOT_BE_NULL = "Instant cannot be null";
     private static final String ID_CANNOT_BE_NULL = "TimeSeriesId cannot be null";
+    private static final String IDS_CANNOT_BE_NULL = "TimeSeriesIds cannot be null";
 
     /** Document identification. */
     private final String mRID;
@@ -59,19 +60,14 @@ public class PevfExchanges {
     private final StandardStatusType docStatus;
 
     // Time Series
-    private final HashMap<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
+    private final Map<String, DoubleTimeSeries> timeSeriesById = new HashMap<>();
 
     PevfExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
                   String senderId, StandardCodingSchemeType senderCodingScheme, StandardRoleType senderMarketRole,
                   String receiverId, StandardCodingSchemeType receiverCodingScheme, StandardRoleType receiverMarketRole,
                   DateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<String, StoredDoubleTimeSeries> timeSeriesById) {
         this.mRID = Objects.requireNonNull(mRID, "mRID is missing");
-
-        if (revisionNumber < 0 || revisionNumber > 100) {
-            throw new IllegalArgumentException("Bad revision number value " + revisionNumber);
-        }
-        this.revisionNumber = revisionNumber;
-
+        this.revisionNumber = checkRevisionNumber(revisionNumber);
         this.type = Objects.requireNonNull(type, "StandardMessageType is missing");
         this.processType = Objects.requireNonNull(processType, "StandardMessageType is missing");
         this.senderId = Objects.requireNonNull(senderId, "Sender mRID is missing");
@@ -147,7 +143,7 @@ public class PevfExchanges {
 
     // Utilities
     public Collection<DoubleTimeSeries> getTimeSeries() {
-        return timeSeriesById.values().stream().map(DoubleTimeSeries.class::cast).collect(Collectors.toList());
+        return Collections.unmodifiableCollection(timeSeriesById.values());
     }
 
     public DoubleTimeSeries getTimeSeries(String timeSeriesId) {
@@ -161,13 +157,11 @@ public class PevfExchanges {
     public Map<String, Double> getValuesAt(Instant instant) {
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
-        Map<String, Double> valueById = new HashMap<>();
-        timeSeriesById.forEach((timeSeriesId, timeSeries) -> valueById.put(timeSeriesId, getValueAt(getTimeSeries(timeSeriesId), instant)));
-        return valueById;
+        return timeSeriesById.keySet().stream()
+                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant)));
     }
 
     public double getValueAt(String timeSeriesId, Instant instant) {
-        Objects.requireNonNull(timeSeriesId, ID_CANNOT_BE_NULL);
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         final DoubleTimeSeries timeSeries = getTimeSeries(timeSeriesId);
@@ -175,11 +169,11 @@ public class PevfExchanges {
     }
 
     public Map<String, Double> getValueAt(List<String> timeSeriesIds, Instant instant) {
-        Objects.requireNonNull(timeSeriesIds, ID_CANNOT_BE_NULL);
+        Objects.requireNonNull(timeSeriesIds, IDS_CANNOT_BE_NULL);
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
-        final Map<String, Double> valueById = new HashMap<>();
-        timeSeriesIds.forEach(timeSeriesId -> valueById.put(timeSeriesId, getValueAt(timeSeriesId, instant)));
-        return valueById;
+
+        return timeSeriesIds.stream()
+                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant)));
     }
 
     public Map<String, Double> getValueAt(String[] timeSeriesIds, Instant instant) {
@@ -192,12 +186,19 @@ public class PevfExchanges {
         Instant end = Instant.ofEpochMilli(index.getEndTime());
 
         if (instant.isBefore(start) || instant.isAfter(end) || instant.equals(end)) {
-            throw new PowsyblException(String.format("%s '%s' is out of bound", timeSeries.getMetadata().getName(), instant));
+            throw new PowsyblException(String.format("%s '%s' is out of bound [%s, %s[", timeSeries.getMetadata().getName(), instant, start, end));
         } else {
             long spacing = index.getSpacing();
             Duration elapsed = Duration.between(start, instant);
             long point = elapsed.toMillis() / spacing;
             return timeSeries.toArray()[(int) point];
         }
+    }
+
+    private static int checkRevisionNumber(int revisionNumber) {
+        if (revisionNumber < 0 || revisionNumber > 100) {
+            throw new IllegalArgumentException("Bad revision number value " + revisionNumber);
+        }
+        return revisionNumber;
     }
 }

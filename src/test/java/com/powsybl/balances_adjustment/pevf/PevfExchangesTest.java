@@ -130,14 +130,14 @@ public class PevfExchangesTest {
     @Test
     public void timeSeriesEndTest() {
         exception.expect(PowsyblException.class);
-        exception.expectMessage("TimeSeries5 '2019-06-18T22:00:00Z' is out of bound");
+        exception.expectMessage("TimeSeries5 '2019-06-18T22:00:00Z' is out of bound [2020-04-05T22:00:00Z, 2020-04-06T22:00:00Z[");
         exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-18T22:00:00.000Z"));
     }
 
     @Test
     public void timeSeriesAfterEndTest() {
         exception.expect(PowsyblException.class);
-        exception.expectMessage("TimeSeries5 '2019-06-19T00:00:00Z' is out of bound");
+        exception.expectMessage("TimeSeries5 '2019-06-19T00:00:00Z' is out of bound [2020-04-05T22:00:00Z, 2020-04-06T22:00:00Z[");
         exchanges.getValueAt("TimeSeries5", Instant.parse("2019-06-19T00:00:00.000Z"));
     }
 
