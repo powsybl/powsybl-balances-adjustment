@@ -45,13 +45,18 @@
         <mockito.version>1.10.19</mockito.version>
         <slf4j.version>1.7.22</slf4j.version>
 
-        <powsybl.core.version>3.8.0</powsybl.core.version>
+        <powsybl.core.version>4.1.0-SNAPSHOT</powsybl.core.version>
         <powsybl.open-loadflow.version>0.8.0</powsybl.open-loadflow.version>
 
     </properties>
 
     <dependencies>
         <!-- Compile dependencies -->
+        <dependency>
+            <groupId>com.powsybl</groupId>
+            <artifactId>powsybl-cgmes-conversion</artifactId>
+            <version>${powsybl.core.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.powsybl</groupId>
             <artifactId>powsybl-iidm-api</artifactId>
