@@ -6,25 +6,30 @@
  */
 package com.powsybl.balances_adjustment.util;
 
-import com.powsybl.cgmes.conversion.elements.areainterchange.CgmesControlArea;
+import java.util.Set;
+
 import com.powsybl.cgmes.conversion.extensions.CgmesControlAreaMapping;
 import com.powsybl.iidm.network.Network;
+import com.powsybl.iidm.network.Terminal;
 
 /**
  * @author Marcos de Miguel <demiguelm at aia.es>
  */
 public class ControlArea implements NetworkArea {
 
-    private final CgmesControlArea cgmesControlArea;
+    private final Set<Terminal> terminals;
 
     public ControlArea(Network network, String controlAreaId) {
         CgmesControlAreaMapping cgmesControlAreaMapping = network.getExtension(CgmesControlAreaMapping.class);
-        cgmesControlArea = cgmesControlAreaMapping.getCgmesControlAreas().get(controlAreaId);
+        terminals = cgmesControlAreaMapping.getTerminals(controlAreaId);
     }
 
     @Override
     public double getNetPosition() {
-        return 0;
+        return terminals.parallelStream().mapToDouble(this::getLeavingFlow).sum();
     }
 
+    private double getLeavingFlow(Terminal terminal) {
+        return terminal.isConnected() ? terminal.getP() : 0;
+    }
 }
