@@ -7,6 +7,7 @@
 package com.powsybl.balances_adjustment.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -25,7 +26,10 @@ public class ControlAreaTest {
         Network network = new CgmesImport().importData(CgmesConformity1ModifiedCatalog.microGridBaseCaseBEWithTieFlow().dataSource(),
             NetworkFactory.findDefault(), null);
 
-        ControlArea controlArea = new ControlArea(network, "_BECONTROLAREA");
+        ControlAreaFactory factory = new ControlAreaFactory("_BECONTROLAREA");
+        NetworkArea networkArea = factory.create(network);
+        assertTrue(networkArea instanceof ControlArea);
+        ControlArea controlArea = (ControlArea) networkArea;
         assertEquals(-205.90011555672567, controlArea.getNetPosition(), 0.0);
     }
 }
