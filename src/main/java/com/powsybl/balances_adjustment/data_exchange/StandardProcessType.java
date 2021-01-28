@@ -4,30 +4,30 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 /**
  * Pan European Verification Function.
- * The condition or position of an object with regard to its standing.
+ * Indicates the nature of process that the document addresses.
  *
- * https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
+ *  https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public enum StandardStatusType {
+public enum StandardProcessType {
 
     /**
-     * The document is in a non finalized state.
+     * The information provided concerns a day ahead process.
      */
-    A01("Intermediate"),
+    A01("Day ahead"),
     /**
-     * The document is in a definitive state.
+     * The information provided concerns an intraday ahead process.
      */
-    A02("Final");
+    A18("Total intraday");
 
     private final String description;
 
-    StandardStatusType(String description) {
+    StandardProcessType(String description) {
         this.description = description;
     }
 

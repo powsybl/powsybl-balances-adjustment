@@ -4,14 +4,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 /**
  * Pan European Verification Function XML parser.
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public final class PevfExchangesConstants {
+public final class DataExchangesConstants {
 
     // Metadata
     static final String ROOT = "ReportingInformation_MarketDocument";
@@ -49,6 +49,6 @@ public final class PevfExchangesConstants {
     static final String CODE = "code";
     static final String TEXT = "text";
 
-    private PevfExchangesConstants() {
+    private DataExchangesConstants() {
     }
 }

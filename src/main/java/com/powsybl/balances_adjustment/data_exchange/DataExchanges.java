@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.timeseries.*;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public class PevfExchanges {
+public class DataExchanges {
 
     // RequireNonNull messages
     private static final String INSTANT_CANNOT_BE_NULL = "Instant cannot be null";
@@ -62,7 +62,7 @@ public class PevfExchanges {
     // Time Series
     private final Map<String, DoubleTimeSeries> timeSeriesById = new HashMap<>();
 
-    PevfExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
+    DataExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
                   String senderId, StandardCodingSchemeType senderCodingScheme, StandardRoleType senderMarketRole,
                   String receiverId, StandardCodingSchemeType receiverCodingScheme, StandardRoleType receiverMarketRole,
                   DateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<String, StoredDoubleTimeSeries> timeSeriesById) {
