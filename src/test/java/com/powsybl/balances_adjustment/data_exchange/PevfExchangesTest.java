@@ -34,7 +34,7 @@ public class PevfExchangesTest {
 
     @Before
     public void setUp() {
-        exchanges = DataExchangesXml.parsePEFV(getClass().getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
+        exchanges = DataExchangesXml.parse(getClass().getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
     }
 
     @Test
@@ -149,7 +149,8 @@ public class PevfExchangesTest {
         new DataExchanges("", -1, StandardMessageType.B19, StandardProcessType.A01,
                  "", StandardCodingSchemeType.A01, StandardRoleType.A32,
                 "", StandardCodingSchemeType.A02, StandardRoleType.A33,
-                          DateTime.now(), null, "", StandardStatusType.A01, null);
+                          DateTime.now(), null, "", StandardStatusType.A01, null,
+                null, null);
     }
 
     @Test
@@ -171,8 +172,8 @@ public class PevfExchangesTest {
         assertEquals("Intermediate", StandardStatusType.A01.getDescription());
         assertEquals("Final", StandardStatusType.A02.getDescription());
         // StandardBusinessType
-        assertEquals("Minimum ATC", StandardBusinessType.B63.getDescription());
-        assertEquals("Meter Measurement data", StandardBusinessType.B64.getDescription());
+        assertEquals("Aggregated netted external schedule", StandardBusinessType.B63.getDescription());
+        assertEquals("Netted area AC position", StandardBusinessType.B64.getDescription());
         // StandardCodeType
         assertEquals("Default Time Series applied", StandardReasonCodeType.A26.getDescription());
         assertEquals("Counterpart time series missing", StandardReasonCodeType.A28.getDescription());

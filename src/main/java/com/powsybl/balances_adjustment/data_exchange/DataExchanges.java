@@ -17,7 +17,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Pan European Verification Function data.
+ *  Pan European Verification Function (PEVF) &
+ *  Common Grid Model Alignment (CGMA)
+ *  data.
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
@@ -58,6 +60,9 @@ public class DataExchanges {
     private final String datasetMarketDocumentMRId;
     /** The identification of the condition or position of the document with regard to its standing. A document may be intermediate or final. */
     private final StandardStatusType docStatus;
+    /** The optimisation area of concern. */
+    private final String domainId;
+    private final StandardCodingSchemeType domainCodingScheme;
 
     // Time Series
     private final Map<String, DoubleTimeSeries> timeSeriesById = new HashMap<>();
@@ -65,7 +70,8 @@ public class DataExchanges {
     DataExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
                   String senderId, StandardCodingSchemeType senderCodingScheme, StandardRoleType senderMarketRole,
                   String receiverId, StandardCodingSchemeType receiverCodingScheme, StandardRoleType receiverMarketRole,
-                  DateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<String, StoredDoubleTimeSeries> timeSeriesById) {
+                  DateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<String, StoredDoubleTimeSeries> timeSeriesById,
+                  String domainId, StandardCodingSchemeType domainCodingScheme) {
         this.mRID = Objects.requireNonNull(mRID, "mRID is missing");
         this.revisionNumber = checkRevisionNumber(revisionNumber);
         this.type = Objects.requireNonNull(type, "StandardMessageType is missing");
@@ -81,6 +87,8 @@ public class DataExchanges {
         this.datasetMarketDocumentMRId = datasetMarketDocumentMRId;
         this.docStatus = docStatus;
         this.timeSeriesById.putAll(timeSeriesById);
+        this.domainId = domainId;
+        this.domainCodingScheme = domainCodingScheme;
     }
 
     // MarketDocument metadata
@@ -118,6 +126,14 @@ public class DataExchanges {
 
     public StandardCodingSchemeType getReceiverCodingScheme() {
         return receiverCodingScheme;
+    }
+
+    public String getDomainId() {
+        return domainId;
+    }
+
+    public StandardCodingSchemeType getDomainCodingScheme() {
+        return domainCodingScheme;
     }
 
     public StandardRoleType getReceiverMarketRole() {

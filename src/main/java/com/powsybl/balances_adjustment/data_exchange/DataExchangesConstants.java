@@ -7,7 +7,9 @@
 package com.powsybl.balances_adjustment.data_exchange;
 
 /**
- * Pan European Verification Function XML parser.
+ * Pan European Verification Function (PEVF) &
+ * Common Grid Model Alignment (CGMA)
+ * XML parser tokens.
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
@@ -27,6 +29,7 @@ public final class DataExchangesConstants {
     static final String TIME_PERIOD_INTERVAL = "time_Period.timeInterval";
     static final String START = "start";
     static final String END = "end";
+    static final String DOMAIN = "domain";
     static final String DATASET_MARKET_DOCUMENT = "dataset_MarketDocument";
     static final String DOC_STATUS = "docStatus";
     static final String VALUE = "value";
@@ -48,7 +51,12 @@ public final class DataExchangesConstants {
     static final String REASON = "Reason";
     static final String CODE = "code";
     static final String TEXT = "text";
+    // Not used
+    static final String MARKET_OBJECT_STATUS = "marketObjectStatus.status";
+    static final String POSFR_QUANTITY = "posFR_Quantity.quantity";
+    static final String NEGFR_QUANTITY = "negFR_Quantity.quantity";
 
     private DataExchangesConstants() {
+
     }
 }

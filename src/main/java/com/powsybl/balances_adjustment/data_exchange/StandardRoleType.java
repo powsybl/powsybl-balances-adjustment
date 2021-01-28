@@ -33,6 +33,10 @@ public enum StandardRoleType {
      */
     A36("Capacity Coordinator"),
     /**
+     * A party that is responsible for providing information to a central authority.
+     */
+    A39("Data provider"),
+    /**
      * The RSC as defined in the System Operation guideline.
      */
     A44("Regional Security Coordinator (RSC)");

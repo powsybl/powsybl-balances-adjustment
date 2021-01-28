@@ -23,7 +23,11 @@ public enum StandardProcessType {
     /**
      * The information provided concerns an intraday ahead process.
      */
-    A18("Total intraday");
+    A18("Total intraday"),
+    /**
+     * Two days ahead
+     */
+    A45("Two days ahead");
 
     private final String description;
 

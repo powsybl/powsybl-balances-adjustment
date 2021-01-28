@@ -17,13 +17,17 @@ package com.powsybl.balances_adjustment.data_exchange;
 public enum StandardBusinessType {
 
     /**
-     * The Available Transmission Capacity that must be guaranteed because of regulatory constraints.
+     * The aggregated netted external schedules for a given border.
      */
-    B63("Minimum ATC"),
+    B63("Aggregated netted external schedule"),
     /**
-     * The data as provided for a meter measurement source.
+     * The AC position for a given area..
      */
-    B64("Meter Measurement data");
+    B64("Netted area AC position"),
+    /**
+     * The AC and DC position for a given area..
+     */
+    B65("Netted area position");
 
     private final String description;
 

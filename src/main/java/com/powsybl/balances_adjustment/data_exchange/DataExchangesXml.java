@@ -27,7 +27,9 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * Pan European Verification Function XML parser.
+ * Pan European Verification Function (PEVF) &
+ * Common Grid Model Alignment (CGMA)
+ * XML parser.
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
@@ -62,6 +64,10 @@ public final class DataExchangesXml {
 
         private String senderId;
 
+        private StandardCodingSchemeType domainCodingScheme;
+
+        private String domainId;
+
         private StandardProcessType processType;
 
         private StandardMessageType type;
@@ -90,16 +96,16 @@ public final class DataExchangesXml {
         private String text;
     }
 
-    public static DataExchanges parsePEFV(InputStream stream) {
-        return parsePEFV(new InputStreamReader(stream));
+    public static DataExchanges parse(InputStream stream) {
+        return parse(new InputStreamReader(stream));
     }
 
-    public static DataExchanges parsePEFV(Reader reader) {
+    public static DataExchanges parse(Reader reader) {
         Objects.requireNonNull(reader);
         ParsingContext context = new ParsingContext();
         try {
             XMLInputFactory factory = XMLInputFactory.newInstance();
-            // disable resolving of external DTD entities  
+            // disable resolving of external DTD entities
             factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
             factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
             factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -152,6 +158,11 @@ public final class DataExchangesXml {
                             context.period = readTimeInterval(xmlReader, DataExchangesConstants.TIME_PERIOD_INTERVAL);
                             break;
 
+                        case DataExchangesConstants.DOMAIN + "." + DataExchangesConstants.MRID:
+                            context.domainCodingScheme = StandardCodingSchemeType.valueOf(xmlReader.getAttributeValue(null, DataExchangesConstants.CODING_SCHEME));
+                            context.domainId = xmlReader.getElementText();
+                            break;
+
                         case DataExchangesConstants.DATASET_MARKET_DOCUMENT + "." + DataExchangesConstants.MRID:
                             context.datasetMarketDocumentMRId = xmlReader.getElementText();
                             break;
@@ -183,7 +194,8 @@ public final class DataExchangesXml {
         return new DataExchanges(context.mRID, context.revisionNumber, context.type, context.processType,
                                  context.senderId, context.senderCodingScheme, context.senderMarketRole,
                                  context.receiverId, context.receiverCodingScheme, context.receiverMarketRole,
-                                 context.creationDate, context.period, context.datasetMarketDocumentMRId, context.docStatus, context.timeSeriesById);
+                                 context.creationDate, context.period, context.datasetMarketDocumentMRId, context.docStatus, context.timeSeriesById,
+                                 context.domainId, context.domainCodingScheme);
     }
 
     private static StoredDoubleTimeSeries readTimeSeries(XMLStreamReader xmlReader) throws XMLStreamException {
@@ -200,6 +212,7 @@ public final class DataExchangesXml {
                 case DataExchangesConstants.CONNECTING_LINE_REGISTERED_RESOURCE + "." + DataExchangesConstants.MRID:
                 case DataExchangesConstants.MEASUREMENT_UNIT:
                 case DataExchangesConstants.CURVE_TYPE:
+                case DataExchangesConstants.MARKET_OBJECT_STATUS: // See CGMA Implementation Guide v2 : Not used
                     context.tags.put(xmlReader.getLocalName(), xmlReader.getElementText());
                     break;
 
@@ -260,7 +273,7 @@ public final class DataExchangesXml {
         // Instantiate new time series
         TimeSeriesIndex index = RegularTimeSeriesIndex.create(Instant.ofEpochMilli(context.period.getStartMillis()), Instant.ofEpochMilli(context.period.getEndMillis()), context.spacing);
         TimeSeriesMetadata metadata = new TimeSeriesMetadata(context.mRID, TimeSeriesDataType.DOUBLE, context.tags, index);
-        // Add new time series into PevfExchanges
+        // Add new time series into DataExchanges
         return new StoredDoubleTimeSeries(metadata, dataChunk);
     }
 
@@ -314,6 +327,12 @@ public final class DataExchangesXml {
 
                 case DataExchangesConstants.QUANTITY:
                     context.quantities.add(Double.parseDouble(xmlReader.getElementText()));
+                    break;
+
+                case DataExchangesConstants.POSFR_QUANTITY:
+                case DataExchangesConstants.NEGFR_QUANTITY:
+                    // See CGMA Implementation Guide v2 : Not used
+                    xmlReader.getElementText();
                     break;
 
                 default:
