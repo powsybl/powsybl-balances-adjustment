@@ -9,12 +9,10 @@ package com.powsybl.balances_adjustment.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.powsybl.iidm.import_.Importers;
 import org.junit.Test;
 
-import com.powsybl.cgmes.conformity.test.CgmesConformity1ModifiedCatalog;
-import com.powsybl.cgmes.conversion.CgmesImport;
 import com.powsybl.iidm.network.Network;
-import com.powsybl.iidm.network.NetworkFactory;
 
 /**
  * @author Marcos de Miguel <demiguelm at aia.es>
@@ -23,13 +21,12 @@ public class ControlAreaTest {
 
     @Test
     public void testNetPosition() {
-        Network network = new CgmesImport().importData(CgmesConformity1ModifiedCatalog.microGridBaseCaseBEWithTieFlow().dataSource(),
-            NetworkFactory.findDefault(), null);
+        Network network = Importers.loadNetwork("controlArea.xiidm", getClass().getResourceAsStream("/controlArea.xiidm"));
 
         ControlAreaFactory factory = new ControlAreaFactory("_BECONTROLAREA");
         NetworkArea networkArea = factory.create(network);
         assertTrue(networkArea instanceof ControlArea);
         ControlArea controlArea = (ControlArea) networkArea;
-        assertEquals(-205.90011555672567, controlArea.getNetPosition(), 0.0);
+        assertEquals(-205.90011555d, controlArea.getNetPosition(), 0.00000001d);
     }
 }

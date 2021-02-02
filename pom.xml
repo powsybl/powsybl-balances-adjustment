@@ -109,20 +109,6 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-cgmes-conformity</artifactId>
-            <version>${powsybl.core.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-cgmes-model</artifactId>
-            <version>${powsybl.core.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-commons</artifactId>
             <version>${powsybl.core.version}</version>
             <type>test-jar</type>
