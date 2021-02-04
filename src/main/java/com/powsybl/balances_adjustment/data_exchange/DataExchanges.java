@@ -84,9 +84,10 @@ public class DataExchanges {
         this.receiverMarketRole = Objects.requireNonNull(receiverMarketRole, "Receiver role is missing");
         this.creationDate = Objects.requireNonNull(creationDate, "Creation DateTime is missing");
         this.period = Objects.requireNonNull(period, "Time interval is missing");
+        this.timeSeriesById.putAll(timeSeriesById);
+        // Optional data
         this.datasetMarketDocumentMRId = datasetMarketDocumentMRId;
         this.docStatus = docStatus;
-        this.timeSeriesById.putAll(timeSeriesById);
         this.domainId = domainId;
         this.domainCodingScheme = domainCodingScheme;
     }
@@ -128,14 +129,6 @@ public class DataExchanges {
         return receiverCodingScheme;
     }
 
-    public String getDomainId() {
-        return domainId;
-    }
-
-    public StandardCodingSchemeType getDomainCodingScheme() {
-        return domainCodingScheme;
-    }
-
     public StandardRoleType getReceiverMarketRole() {
         return receiverMarketRole;
     }
@@ -148,13 +141,21 @@ public class DataExchanges {
         return period;
     }
 
-    // MarketDocument optional metadata
+    // Optional metadata
     public Optional<String> getDatasetMarketDocumentMRId() {
         return Optional.ofNullable(datasetMarketDocumentMRId);
     }
 
     Optional<StandardStatusType> getDocStatus() {
         return Optional.ofNullable(docStatus);
+    }
+
+    public Optional<String> getDomainId() {
+        return Optional.ofNullable(domainId);
+    }
+
+    public Optional<StandardCodingSchemeType> getDomainCodingScheme() {
+        return Optional.ofNullable(domainCodingScheme);
     }
 
     // Utilities

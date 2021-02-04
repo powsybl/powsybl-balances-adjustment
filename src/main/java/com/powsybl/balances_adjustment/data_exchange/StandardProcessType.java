@@ -7,7 +7,7 @@
 package com.powsybl.balances_adjustment.data_exchange;
 
 /**
- * Pan European Verification Function.
+ * Electronic Data Interchange.
  * Indicates the nature of process that the document addresses.
  *
  *  https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/

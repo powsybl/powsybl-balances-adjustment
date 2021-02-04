@@ -7,7 +7,7 @@
 package com.powsybl.balances_adjustment.data_exchange;
 
 /**
- * Pan European Verification Function.
+ * Electronic Data Interchange.
  * The type of curve being defined in the time series.
  *
  * https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/

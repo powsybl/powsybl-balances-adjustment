@@ -12,6 +12,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.Optional;
+
 import static org.junit.Assert.*;
 
 /**
@@ -36,8 +38,8 @@ public class CgmaExchangesTest {
     public void baseTests() {
         // Getters
         assertEquals(StandardProcessType.A45, exchanges.getProcessType());
-        assertEquals("OptimisationArea", exchanges.getDomainId());
-        assertEquals(StandardCodingSchemeType.A01, exchanges.getDomainCodingScheme());
+        assertEquals(Optional.of("OptimisationArea"), exchanges.getDomainId());
+        assertEquals(Optional.of(StandardCodingSchemeType.A01), exchanges.getDomainCodingScheme());
         assertEquals(StandardRoleType.A39, exchanges.getSenderMarketRole());
     }
 

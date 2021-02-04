@@ -56,6 +56,8 @@ public class PevfExchangesTest {
         // Optional
         assertEquals(Optional.of("PEVF CGM Export"), exchanges.getDatasetMarketDocumentMRId());
         assertEquals(Optional.of(StandardStatusType.A01), exchanges.getDocStatus());
+        assertFalse(exchanges.getDomainId().isPresent());
+        assertFalse(exchanges.getDomainCodingScheme().isPresent());
     }
 
     @Test
