@@ -4,10 +4,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 /**
- * Pan European Verification Function.
+ * Electronic Data Interchange.
  * Indicates the nature of process that the document addresses.
  *
  *  https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
@@ -23,7 +23,11 @@ public enum StandardProcessType {
     /**
      * The information provided concerns an intraday ahead process.
      */
-    A18("Total intraday");
+    A18("Total intraday"),
+    /**
+     * Two days ahead
+     */
+    A45("Two days ahead");
 
     private final String description;
 

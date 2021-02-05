@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.timeseries.DoubleTimeSeries;
@@ -30,11 +30,11 @@ public class PevfExchangesTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private PevfExchanges exchanges;
+    private DataExchanges exchanges;
 
     @Before
     public void setUp() {
-        exchanges = PevfExchangesXml.parse(getClass().getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
+        exchanges = DataExchangesXml.parse(getClass().getResourceAsStream("/testPEVFMarketDocument_2-0.xml"));
     }
 
     @Test
@@ -56,6 +56,8 @@ public class PevfExchangesTest {
         // Optional
         assertEquals(Optional.of("PEVF CGM Export"), exchanges.getDatasetMarketDocumentMRId());
         assertEquals(Optional.of(StandardStatusType.A01), exchanges.getDocStatus());
+        assertFalse(exchanges.getDomainId().isPresent());
+        assertFalse(exchanges.getDomainCodingScheme().isPresent());
     }
 
     @Test
@@ -146,10 +148,11 @@ public class PevfExchangesTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Bad revision number value -1");
 
-        new PevfExchanges("", -1, StandardMessageType.B19, StandardProcessType.A01,
+        new DataExchanges("", -1, StandardMessageType.B19, StandardProcessType.A01,
                  "", StandardCodingSchemeType.A01, StandardRoleType.A32,
                 "", StandardCodingSchemeType.A02, StandardRoleType.A33,
-                          DateTime.now(), null, "", StandardStatusType.A01, null);
+                          DateTime.now(), null, "", StandardStatusType.A01, null,
+                null, null);
     }
 
     @Test
@@ -171,8 +174,8 @@ public class PevfExchangesTest {
         assertEquals("Intermediate", StandardStatusType.A01.getDescription());
         assertEquals("Final", StandardStatusType.A02.getDescription());
         // StandardBusinessType
-        assertEquals("Minimum ATC", StandardBusinessType.B63.getDescription());
-        assertEquals("Meter Measurement data", StandardBusinessType.B64.getDescription());
+        assertEquals("Aggregated netted external schedule", StandardBusinessType.B63.getDescription());
+        assertEquals("Netted area AC position", StandardBusinessType.B64.getDescription());
         // StandardCodeType
         assertEquals("Default Time Series applied", StandardReasonCodeType.A26.getDescription());
         assertEquals("Counterpart time series missing", StandardReasonCodeType.A28.getDescription());

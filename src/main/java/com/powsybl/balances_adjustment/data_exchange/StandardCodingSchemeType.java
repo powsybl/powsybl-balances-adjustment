@@ -4,10 +4,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 /**
- * Pan European Verification Function.
+ * Electronic Data Interchange.
  * Codification scheme used to identify the coding scheme used for the set of coded values to identify specific objects.
  *
  * https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
