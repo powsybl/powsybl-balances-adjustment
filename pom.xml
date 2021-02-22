@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.powsybl</groupId>
         <artifactId>powsybl-parent</artifactId>
-        <version>3</version>
+        <version>4</version>
         <relativePath/>
     </parent>
 
@@ -45,8 +45,8 @@
         <mockito.version>1.10.19</mockito.version>
         <slf4j.version>1.7.22</slf4j.version>
 
-        <powsybl.core.version>3.8.0</powsybl.core.version>
-        <powsybl.open-loadflow.version>0.8.0</powsybl.open-loadflow.version>
+        <powsybl.core.version>4.0.1</powsybl.core.version>
+        <powsybl.open-loadflow.version>0.9.0</powsybl.open-loadflow.version>
 
     </properties>
 
