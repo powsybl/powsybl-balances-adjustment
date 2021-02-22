@@ -54,7 +54,6 @@ public class JsonBalanceComputationParametersTest extends AbstractConverterTest 
         assertTrue(actualLoadflowParams.isTransformerVoltageControlOn());
         assertTrue(actualLoadflowParams.isPhaseShifterRegulationOn());
         assertFalse(actualLoadflowParams.isNoGeneratorReactiveLimits());
-        assertFalse(actualLoadflowParams.isSpecificCompatibility());
     }
 
     @Test

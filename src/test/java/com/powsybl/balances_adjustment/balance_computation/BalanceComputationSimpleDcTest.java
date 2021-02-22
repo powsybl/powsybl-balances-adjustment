@@ -62,7 +62,6 @@ public class BalanceComputationSimpleDcTest {
 
         parameters = new BalanceComputationParameters();
         OpenLoadFlowParameters openLoadFlowParameters = new OpenLoadFlowParameters();
-        openLoadFlowParameters.setDc(true);
         parameters.getLoadFlowParameters().addExtension(OpenLoadFlowParameters.class, openLoadFlowParameters);
 
         balanceComputationFactory = new BalanceComputationFactoryImpl();
