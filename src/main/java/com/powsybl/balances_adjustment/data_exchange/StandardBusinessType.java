@@ -4,30 +4,34 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 /**
- * Pan European Verification Function.
- * The condition or position of an object with regard to its standing.
+ * Electronic Data Interchange.
+ * The exact business nature identifying the principal characteristic of a time series.
  *
  * https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public enum StandardStatusType {
+public enum StandardBusinessType {
 
     /**
-     * The document is in a non finalized state.
+     * The aggregated netted external schedules for a given border.
      */
-    A01("Intermediate"),
+    B63("Aggregated netted external schedule"),
     /**
-     * The document is in a definitive state.
+     * The AC position for a given area..
      */
-    A02("Final");
+    B64("Netted area AC position"),
+    /**
+     * The AC and DC position for a given area..
+     */
+    B65("Netted area position");
 
     private final String description;
 
-    StandardStatusType(String description) {
+    StandardBusinessType(String description) {
         this.description = description;
     }
 

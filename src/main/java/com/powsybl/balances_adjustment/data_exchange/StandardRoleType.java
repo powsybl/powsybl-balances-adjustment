@@ -4,10 +4,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 /**
- * Pan European Verification Function.
+ * Electronic Data Interchange.
  * Identification of the role played by a party.
  *
  *  https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
@@ -32,6 +32,10 @@ public enum StandardRoleType {
      * A party, acting on behalf of the SOs involved, responsible for establishing a coordinated Offered Capacity and/or NTC and/or ATC between several Market Balance Areas.
      */
     A36("Capacity Coordinator"),
+    /**
+     * A party that is responsible for providing information to a central authority.
+     */
+    A39("Data provider"),
     /**
      * The RSC as defined in the System Operation guideline.
      */

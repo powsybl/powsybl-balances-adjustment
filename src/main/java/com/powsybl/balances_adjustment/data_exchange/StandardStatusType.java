@@ -4,30 +4,30 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 /**
- * Pan European Verification Function.
- * The exact business nature identifying the principal characteristic of a time series.
+ * Electronic Data Interchange.
+ * The condition or position of an object with regard to its standing.
  *
  * https://www.entsoe.eu/publications/electronic-data-interchange-edi-library/
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public enum StandardBusinessType {
+public enum StandardStatusType {
 
     /**
-     * The Available Transmission Capacity that must be guaranteed because of regulatory constraints.
+     * The document is in a non finalized state.
      */
-    B63("Minimum ATC"),
+    A01("Intermediate"),
     /**
-     * The data as provided for a meter measurement source.
+     * The document is in a definitive state.
      */
-    B64("Meter Measurement data");
+    A02("Final");
 
     private final String description;
 
-    StandardBusinessType(String description) {
+    StandardStatusType(String description) {
         this.description = description;
     }
 

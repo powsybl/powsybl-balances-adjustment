@@ -4,14 +4,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 /**
- * Pan European Verification Function XML parser.
+ * Pan European Verification Function (PEVF) &
+ * Common Grid Model Alignment (CGMA)
+ * XML parser tokens.
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public final class PevfExchangesConstants {
+public final class DataExchangesConstants {
 
     // Metadata
     static final String ROOT = "ReportingInformation_MarketDocument";
@@ -27,6 +29,7 @@ public final class PevfExchangesConstants {
     static final String TIME_PERIOD_INTERVAL = "time_Period.timeInterval";
     static final String START = "start";
     static final String END = "end";
+    static final String DOMAIN = "domain";
     static final String DATASET_MARKET_DOCUMENT = "dataset_MarketDocument";
     static final String DOC_STATUS = "docStatus";
     static final String VALUE = "value";
@@ -48,7 +51,12 @@ public final class PevfExchangesConstants {
     static final String REASON = "Reason";
     static final String CODE = "code";
     static final String TEXT = "text";
+    // Not used
+    static final String MARKET_OBJECT_STATUS = "marketObjectStatus.status";
+    static final String POSFR_QUANTITY = "posFR_Quantity.quantity";
+    static final String NEGFR_QUANTITY = "negFR_Quantity.quantity";
 
-    private PevfExchangesConstants() {
+    private DataExchangesConstants() {
+
     }
 }

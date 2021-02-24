@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.powsybl.balances_adjustment.pevf;
+package com.powsybl.balances_adjustment.data_exchange;
 
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.timeseries.*;
@@ -17,11 +17,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Pan European Verification Function data.
+ *  Pan European Verification Function (PEVF) &
+ *  Common Grid Model Alignment (CGMA)
+ *  data.
  *
  * @author Thomas Adam {@literal <tadam at silicom.fr>}
  */
-public class PevfExchanges {
+public class DataExchanges {
 
     // RequireNonNull messages
     private static final String INSTANT_CANNOT_BE_NULL = "Instant cannot be null";
@@ -58,14 +60,18 @@ public class PevfExchanges {
     private final String datasetMarketDocumentMRId;
     /** The identification of the condition or position of the document with regard to its standing. A document may be intermediate or final. */
     private final StandardStatusType docStatus;
+    /** The optimisation area of concern. */
+    private final String domainId;
+    private final StandardCodingSchemeType domainCodingScheme;
 
     // Time Series
     private final Map<String, DoubleTimeSeries> timeSeriesById = new HashMap<>();
 
-    PevfExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
+    DataExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
                   String senderId, StandardCodingSchemeType senderCodingScheme, StandardRoleType senderMarketRole,
                   String receiverId, StandardCodingSchemeType receiverCodingScheme, StandardRoleType receiverMarketRole,
-                  DateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<String, StoredDoubleTimeSeries> timeSeriesById) {
+                  DateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<String, StoredDoubleTimeSeries> timeSeriesById,
+                  String domainId, StandardCodingSchemeType domainCodingScheme) {
         this.mRID = Objects.requireNonNull(mRID, "mRID is missing");
         this.revisionNumber = checkRevisionNumber(revisionNumber);
         this.type = Objects.requireNonNull(type, "StandardMessageType is missing");
@@ -78,9 +84,12 @@ public class PevfExchanges {
         this.receiverMarketRole = Objects.requireNonNull(receiverMarketRole, "Receiver role is missing");
         this.creationDate = Objects.requireNonNull(creationDate, "Creation DateTime is missing");
         this.period = Objects.requireNonNull(period, "Time interval is missing");
+        this.timeSeriesById.putAll(timeSeriesById);
+        // Optional data
         this.datasetMarketDocumentMRId = datasetMarketDocumentMRId;
         this.docStatus = docStatus;
-        this.timeSeriesById.putAll(timeSeriesById);
+        this.domainId = domainId;
+        this.domainCodingScheme = domainCodingScheme;
     }
 
     // MarketDocument metadata
@@ -132,13 +141,21 @@ public class PevfExchanges {
         return period;
     }
 
-    // MarketDocument optional metadata
+    // Optional metadata
     public Optional<String> getDatasetMarketDocumentMRId() {
         return Optional.ofNullable(datasetMarketDocumentMRId);
     }
 
     Optional<StandardStatusType> getDocStatus() {
         return Optional.ofNullable(docStatus);
+    }
+
+    public Optional<String> getDomainId() {
+        return Optional.ofNullable(domainId);
+    }
+
+    public Optional<StandardCodingSchemeType> getDomainCodingScheme() {
+        return Optional.ofNullable(domainCodingScheme);
     }
 
     // Utilities
