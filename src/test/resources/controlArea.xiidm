@@ -262,61 +262,6 @@
                 <iidm:temporaryLimit name="_84d4dbeb-ef3b-43a1-9a7e-ce5713013498" acceptableDuration="10" value="3811.6"/>
             </iidm:currentLimits2>
         </iidm:twoWindingsTransformer>
-        <iidm:threeWindingsTransformer id="_84ed55f4-61f5-4d9d-8755-bba7b877a246" name="BE-TR3_1" r1="0.898462" x1="17.204128" g1="0.0" b1="2.4375E-6" ratedU1="400.0" r2="1.070770247933884" x2="19.6664" g2="0.0" b2="0.0" ratedU2="220.0" r3="4.837006802721088" x3="21.760725623582765" g3="0.0" b3="0.0" ratedU3="21.0" ratedU0="400.0" bus1="_e44141af-f1dc-44d3-bfa4-b674e5c953d7" connectableBus1="_e44141af-f1dc-44d3-bfa4-b674e5c953d7" voltageLevelId1="_469df5f7-058f-4451-a998-57a48e8a56fe" bus2="_99b219f3-4593-428b-a4da-124a54630178" connectableBus2="_99b219f3-4593-428b-a4da-124a54630178" voltageLevelId2="_b10b171b-3bc5-4849-bb1f-61ed9ea1ec7c" bus3="_f96d552a-618d-4d0c-a39a-2dea3c411dee" connectableBus3="_f96d552a-618d-4d0c-a39a-2dea3c411dee" voltageLevelId3="_929ba893-c9dc-44d7-b1fd-30834bd3ab85">
-            <iidm:alias type="CGMES.Terminal1">_76e9ca77-f805-40ea-8120-5a6d58416d34</iidm:alias>
-            <iidm:alias type="CGMES.Terminal2">_53fd6693-57e6-482e-8fbe-dcf3531a7ce0</iidm:alias>
-            <iidm:alias type="CGMES.RatioTapChanger2">_fe25f43a-7341-446e-a71a-8ab7119ba806</iidm:alias>
-            <iidm:alias type="CGMES.Terminal3">_ca0f7e2e-3442-4ada-a704-91f319c0ebe3</iidm:alias>
-            <iidm:property name="CGMES._fe25f43a-7341-446e-a71a-8ab7119ba806.TapChangerControl" value="_38f972bc-b7fd-4e75-8c24-379a86fbb506"/>
-            <iidm:ratioTapChanger2 lowTapPosition="1" tapPosition="17" targetDeadband="0.5" loadTapChangingCapabilities="true" regulating="false" targetV="0.0">
-                <iidm:terminalRef id="_84ed55f4-61f5-4d9d-8755-bba7b877a246" side="TWO"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.1111111111111112"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.103448275862069"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.095890410958904"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.08843537414966"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.081081081081081"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.0738255033557047"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.0666666666666667"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.0596026490066226"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.0526315789473684"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.0457516339869282"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.0389610389610389"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.032258064516129"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.0256410256410258"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.019108280254777"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.0126582278481011"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.0062893081761006"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="1.0"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9937888198757763"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9876543209876544"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9815950920245399"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9756097560975611"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9696969696969697"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9638554216867469"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9580838323353293"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9523809523809523"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9467455621301776"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9411764705882353"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.935672514619883"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9302325581395349"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9248554913294798"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9195402298850576"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9142857142857143"/>
-                <iidm:step r="0.0" x="0.0" g="0.0" b="0.0" rho="0.9090909090909091"/>
-            </iidm:ratioTapChanger2>
-            <iidm:currentLimits1 permanentLimit="938.2">
-                <iidm:temporaryLimit name="_ddcb76e0-13ea-413f-9a8f-553d78782f76" acceptableDuration="20" value="968.2"/>
-                <iidm:temporaryLimit name="_3e9ed732-dd10-4f10-bc9d-d399e1e75a78" acceptableDuration="10" value="998.2"/>
-            </iidm:currentLimits1>
-            <iidm:currentLimits2 permanentLimit="1705.8">
-                <iidm:temporaryLimit name="_52d7ccc6-b4a1-48eb-9cfa-f5870b8b7fce" acceptableDuration="20" value="1805.8"/>
-                <iidm:temporaryLimit name="_11763596-6f4b-4cd5-a4a0-be649f368e86" acceptableDuration="10" value="1905.8"/>
-            </iidm:currentLimits2>
-            <iidm:currentLimits3 permanentLimit="17870.4">
-                <iidm:temporaryLimit name="_50448009-0fad-4656-bce4-438fe76e18cf" acceptableDuration="20" value="18870.4"/>
-                <iidm:temporaryLimit name="_df2d3155-4436-4542-8d3b-64241c7433be" acceptableDuration="10" value="19870.4"/>
-            </iidm:currentLimits3>
-        </iidm:threeWindingsTransformer>
     </iidm:substation>
     <iidm:line id="_b58bf21a-096a-4dae-9a01-3f03b60c24c7" name="BE-Line_2" r="1.935" x="34.2" g1="3.375E-5" b1="2.120575E-5" g2="3.375E-5" b2="2.120575E-5" bus1="_99b219f3-4593-428b-a4da-124a54630178" connectableBus1="_99b219f3-4593-428b-a4da-124a54630178" voltageLevelId1="_b10b171b-3bc5-4849-bb1f-61ed9ea1ec7c" bus2="_f70f6bad-eb8d-4b8f-8431-4ab93581514e" connectableBus2="_f70f6bad-eb8d-4b8f-8431-4ab93581514e" voltageLevelId2="_d0486169-2205-40b2-895e-b672ecb9e5fc">
         <iidm:alias type="CGMES.Terminal2">_77f04391-aa23-49b6-b3e9-6089130bb5d5</iidm:alias>
@@ -347,15 +292,15 @@
         <apc:activePowerControl participate="true" droop="0.0"/>
     </iidm:extension>
     <iidm:extension id="urn:uuid:d400c631-75a0-4c30-8aed-832b0d282e73">
-        <cca:cgmesControlArea>
+        <cca:cgmesControlAreas>
             <cca:controlArea id="_BECONTROLAREA" name="BE" energyIdentCodeEic="10BE------1" netInterchange="-205.90011555672567">
-                <cca:terminal equipment="_a16b4a6c-70b1-4abf-9a9d-bd0fa47f9fe4" end="1"></cca:terminal>
-                <cca:terminal equipment="_78736387-5f60-4832-b3fe-d50daf81b0a6" end="1"></cca:terminal>
-                <cca:terminal equipment="_17086487-56ba-4979-b8de-064025a6b4da" end="1"></cca:terminal>
-                <cca:terminal equipment="_ed0c5d75-4a54-43c8-b782-b20d7431630b" end="1"></cca:terminal>
-                <cca:terminal equipment="_b18cd1aa-7808-49b9-a7cf-605eaf07b006" end="1"></cca:terminal>
+                <cca:terminal id="_a16b4a6c-70b1-4abf-9a9d-bd0fa47f9fe4"/>
+                <cca:terminal id="_78736387-5f60-4832-b3fe-d50daf81b0a6"/>
+                <cca:terminal id="_17086487-56ba-4979-b8de-064025a6b4da"/>
+                <cca:terminal id="_ed0c5d75-4a54-43c8-b782-b20d7431630b"/>
+                <cca:boundary id="_b18cd1aa-7808-49b9-a7cf-605eaf07b006"/>
             </cca:controlArea>
-        </cca:cgmesControlArea>
+        </cca:cgmesControlAreas>
         <csshm:cgmesSshMetadata description="CGMES Conformity Assessment: 'MicroGridTestConfiguration....BC (MAS BE) Test Configuration. The model is owned by ENTSO-E and is provided by ENTSO-E “as it is”. To the fullest extent permitted by law, ENTSO-E shall not be liable for any damages of any kind arising out of the use of the model (including any of its subsequent modifications). ENTSO-E neither warrants, nor represents that the use of the model will not infringe the rights of third parties. Any use of the model shall  include a reference to ENTSO-E. ENTSO-E web site is the only official source of information related to the model." sshVersion="2" modelingAuthoritySet="http://elia.be/CGMES/2.4.15">
             <csshm:dependentOn>urn:uuid:d400c631-75a0-4c30-8aed-832b0d282e73</csshm:dependentOn>
         </csshm:cgmesSshMetadata>

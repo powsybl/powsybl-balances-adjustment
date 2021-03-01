@@ -9,6 +9,8 @@ package com.powsybl.balances_adjustment.util;
 import com.powsybl.iidm.network.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,6 +51,11 @@ public class VoltageLevelsArea implements NetworkArea {
                 + branchBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
                 + threeWindingsTransformerBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
                 + hvdcLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum();
+    }
+
+    @Override
+    public Collection<String> getVoltageLevelIds() {
+        return Collections.unmodifiableList(voltageLevelIds);
     }
 
     private boolean isAreaBorder(DanglingLine danglingLine) {

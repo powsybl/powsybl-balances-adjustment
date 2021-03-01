@@ -6,6 +6,9 @@
  */
 package com.powsybl.balances_adjustment.util;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * NetworkArea defines an area for balances adjustment as a net position provider, calculated on a Network object
  *
@@ -22,4 +25,8 @@ public interface NetworkArea {
      * @return Sum of the flows leaving the area
      */
     double getNetPosition();
+
+    default Collection<String> getVoltageLevelIds() {
+        return Collections.emptyList();
+    }
 }
