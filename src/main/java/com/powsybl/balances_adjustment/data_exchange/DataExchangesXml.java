@@ -42,7 +42,7 @@ public final class DataExchangesXml {
 
     private static class ParsingContext {
 
-        private final Map<String, StoredDoubleTimeSeries> timeSeriesById = new HashMap<>();
+        private final Map<TimeSeriesMetadata, StoredDoubleTimeSeries> timeSeriesByMetadata = new HashMap<>();
 
         private StandardStatusType docStatus;
 
@@ -173,7 +173,7 @@ public final class DataExchangesXml {
 
                         case DataExchangesConstants.TIMESERIES:
                             StoredDoubleTimeSeries timeSeries = readTimeSeries(xmlReader);
-                            context.timeSeriesById.put(timeSeries.getMetadata().getName(), timeSeries);
+                            context.timeSeriesByMetadata.put(timeSeries.getMetadata(), timeSeries);
                             break;
 
                         case DataExchangesConstants.ROOT:
@@ -194,7 +194,7 @@ public final class DataExchangesXml {
         return new DataExchanges(context.mRID, context.revisionNumber, context.type, context.processType,
                                  context.senderId, context.senderCodingScheme, context.senderMarketRole,
                                  context.receiverId, context.receiverCodingScheme, context.receiverMarketRole,
-                                 context.creationDate, context.period, context.datasetMarketDocumentMRId, context.docStatus, context.timeSeriesById,
+                                 context.creationDate, context.period, context.datasetMarketDocumentMRId, context.docStatus, context.timeSeriesByMetadata,
                                  context.domainId, context.domainCodingScheme);
     }
 
