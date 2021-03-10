@@ -62,7 +62,6 @@ public class ControlArea implements NetworkArea {
         UndirectedGraph<Object, Object> voltageLevelGraph = new UndirectedGraphImpl<>();
         network.getVoltageLevelStream().forEach(vl -> {
             int v = voltageLevelGraph.addVertex();
-            voltageLevelGraph.setVertexObject(v, vl);
             vlNums.put(vl, v);
         });
         network.getBranchStream().forEach(b -> voltageLevelGraph.addEdge(vlNums.get(b.getTerminal1().getVoltageLevel()), vlNums.get(b.getTerminal2().getVoltageLevel()), b));
