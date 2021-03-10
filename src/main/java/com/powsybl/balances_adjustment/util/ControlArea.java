@@ -20,80 +20,14 @@ import com.powsybl.math.graph.UndirectedGraphImpl;
 public class ControlArea implements NetworkArea {
 
     private final Set<Object> terminalsAndBoundaries = new HashSet<>();
-    private final Set<String> voltageLevelIds = new HashSet<>();
+    private final Set<String> voltageLevelIdsCache;
 
     public ControlArea(Network network, String controlAreaId) {
         CgmesControlAreas cgmesControlAreaMapping = network.getExtension(CgmesControlAreas.class);
         terminalsAndBoundaries.addAll(cgmesControlAreaMapping.getCgmesControlArea(controlAreaId).getTerminals());
         terminalsAndBoundaries.addAll(cgmesControlAreaMapping.getCgmesControlArea(controlAreaId).getBoundaries());
 
-        UndirectedGraph<Object, Object> voltageLevelGraph = new UndirectedGraphImpl<>();
-        Map<VoltageLevel, Integer> vlNums = new HashMap<>();
-        network.getVoltageLevelStream().forEach(vl -> {
-            int v = voltageLevelGraph.addVertex();
-            voltageLevelGraph.setVertexObject(v, vl);
-            vlNums.put(vl, v);
-        });
-        network.getBranchStream().forEach(b -> voltageLevelGraph.addEdge(vlNums.get(b.getTerminal1().getVoltageLevel()), vlNums.get(b.getTerminal2().getVoltageLevel()), b));
-        network.getThreeWindingsTransformerStream().forEach(twt -> {
-            int v = voltageLevelGraph.addVertex();
-            voltageLevelGraph.addEdge(vlNums.get(twt.getLeg1().getTerminal().getVoltageLevel()), v, twt.getLeg1());
-            voltageLevelGraph.addEdge(v, vlNums.get(twt.getLeg2().getTerminal().getVoltageLevel()), twt.getLeg2());
-            voltageLevelGraph.addEdge(v, vlNums.get(twt.getLeg3().getTerminal().getVoltageLevel()), twt.getLeg3());
-        });
-        network.getDanglingLineStream().forEach(dl -> {
-            int v = voltageLevelGraph.addVertex();
-            voltageLevelGraph.addEdge(vlNums.get(dl.getTerminal().getVoltageLevel()), v, dl);
-        });
-        for (Object o : terminalsAndBoundaries) {
-            VoltageLevel vl;
-            if (o instanceof Terminal) {
-                vl = ((Terminal) o).getVoltageLevel();
-            } else if (o instanceof Boundary) {
-                vl = ((Boundary) o).getVoltageLevel();
-            } else {
-                throw new AssertionError();
-            }
-            voltageLevelGraph.traverse(vlNums.get(vl), (v1, e, v2) -> {
-                Object edge = voltageLevelGraph.getEdgeObject(e);
-                if (edge instanceof Branch) {
-                    Branch branch = (Branch) edge;
-                    voltageLevelIds.add(branch.getTerminal1().getVoltageLevel().getId());
-                    if (terminalsAndBoundaries.contains(branch.getTerminal1())) {
-                        return TraverseResult.TERMINATE;
-                    }
-                    if (branch instanceof TieLine) {
-                        TieLine tl = (TieLine) branch;
-                        if (terminalsAndBoundaries.contains(tl.getHalf1().getBoundary())) {
-                            return TraverseResult.TERMINATE;
-                        }
-                    }
-                    voltageLevelIds.add(branch.getTerminal2().getVoltageLevel().getId());
-                    if (terminalsAndBoundaries.contains(branch.getTerminal2())) {
-                        return TraverseResult.TERMINATE;
-                    }
-                    if (branch instanceof TieLine) {
-                        TieLine tl = (TieLine) branch;
-                        if (terminalsAndBoundaries.contains(tl.getHalf2().getBoundary())) {
-                            return TraverseResult.TERMINATE;
-                        }
-                    }
-                } else if (edge instanceof ThreeWindingsTransformer.Leg) {
-                    ThreeWindingsTransformer.Leg leg = (ThreeWindingsTransformer.Leg) edge;
-                    voltageLevelIds.add(leg.getTerminal().getVoltageLevel().getId());
-                    if (terminalsAndBoundaries.contains(leg.getTerminal())) {
-                        return TraverseResult.TERMINATE;
-                    }
-                } else if (edge instanceof DanglingLine) {
-                    DanglingLine dl = (DanglingLine) edge;
-                    voltageLevelIds.add(dl.getTerminal().getVoltageLevel().getId());
-                    if (terminalsAndBoundaries.contains(dl.getBoundary()) || terminalsAndBoundaries.contains(dl.getTerminal())) {
-                        return TraverseResult.TERMINATE;
-                    }
-                }
-                return TraverseResult.CONTINUE;
-            });
-        }
+        voltageLevelIdsCache = getVoltageLevelIds(network, terminalsAndBoundaries);
     }
 
     @Override
@@ -110,10 +44,90 @@ public class ControlArea implements NetworkArea {
 
     @Override
     public Collection<String> getVoltageLevelIds() {
-        return Collections.unmodifiableSet(voltageLevelIds);
+        return Collections.unmodifiableSet(voltageLevelIdsCache);
     }
 
-    private double getLeavingFlow(Terminal terminal) {
+    private static Set<String> getVoltageLevelIds(Network network, Set<Object> terminalsAndBoundaries) {
+        Set<String> voltageLevelIds = new HashSet<>();
+        Map<VoltageLevel, Integer> vlNums = new HashMap<>();
+        UndirectedGraph<Object, Object> voltageLevelGraph = createVoltageLevelGraph(network, vlNums);
+        for (Object o : terminalsAndBoundaries) {
+            voltageLevelGraph.traverse(vlNums.get(getVoltageLevel(o)), (v1, e, v2) -> findContainedVoltageLevels(voltageLevelGraph.getEdgeObject(e),
+                    voltageLevelIds, terminalsAndBoundaries));
+        }
+        return voltageLevelIds;
+    }
+
+    private static UndirectedGraph<Object, Object> createVoltageLevelGraph(Network network, Map<VoltageLevel, Integer> vlNums) {
+        UndirectedGraph<Object, Object> voltageLevelGraph = new UndirectedGraphImpl<>();
+        network.getVoltageLevelStream().forEach(vl -> {
+            int v = voltageLevelGraph.addVertex();
+            voltageLevelGraph.setVertexObject(v, vl);
+            vlNums.put(vl, v);
+        });
+        network.getBranchStream().forEach(b -> voltageLevelGraph.addEdge(vlNums.get(b.getTerminal1().getVoltageLevel()), vlNums.get(b.getTerminal2().getVoltageLevel()), b));
+        network.getThreeWindingsTransformerStream().forEach(twt -> {
+            int v = voltageLevelGraph.addVertex();
+            voltageLevelGraph.addEdge(vlNums.get(twt.getLeg1().getTerminal().getVoltageLevel()), v, twt.getLeg1());
+            voltageLevelGraph.addEdge(v, vlNums.get(twt.getLeg2().getTerminal().getVoltageLevel()), twt.getLeg2());
+            voltageLevelGraph.addEdge(v, vlNums.get(twt.getLeg3().getTerminal().getVoltageLevel()), twt.getLeg3());
+        });
+        network.getDanglingLineStream().forEach(dl -> {
+            int v = voltageLevelGraph.addVertex();
+            voltageLevelGraph.addEdge(vlNums.get(dl.getTerminal().getVoltageLevel()), v, dl);
+        });
+        return voltageLevelGraph;
+    }
+
+    private static VoltageLevel getVoltageLevel(Object o) {
+        if (o instanceof Terminal) {
+            return ((Terminal) o).getVoltageLevel();
+        } else if (o instanceof Boundary) {
+            return ((Boundary) o).getVoltageLevel();
+        } else {
+            throw new AssertionError();
+        }
+    }
+
+    private static TraverseResult findContainedVoltageLevels(Object edge, Set<String> voltageLevelIds, Set<Object> terminalsAndBoundaries) {
+        if (edge instanceof Branch) {
+            Branch branch = (Branch) edge;
+            voltageLevelIds.add(branch.getTerminal1().getVoltageLevel().getId());
+            if (containsTieFlows(branch, Branch.Side.ONE, terminalsAndBoundaries)) {
+                return TraverseResult.TERMINATE;
+            }
+            voltageLevelIds.add(branch.getTerminal2().getVoltageLevel().getId());
+            if (containsTieFlows(branch, Branch.Side.TWO, terminalsAndBoundaries)) {
+                return TraverseResult.TERMINATE;
+            }
+        } else if (edge instanceof ThreeWindingsTransformer.Leg) {
+            ThreeWindingsTransformer.Leg leg = (ThreeWindingsTransformer.Leg) edge;
+            voltageLevelIds.add(leg.getTerminal().getVoltageLevel().getId());
+            if (terminalsAndBoundaries.contains(leg.getTerminal())) {
+                return TraverseResult.TERMINATE;
+            }
+        } else if (edge instanceof DanglingLine) {
+            DanglingLine dl = (DanglingLine) edge;
+            voltageLevelIds.add(dl.getTerminal().getVoltageLevel().getId());
+            if (terminalsAndBoundaries.contains(dl.getBoundary()) || terminalsAndBoundaries.contains(dl.getTerminal())) {
+                return TraverseResult.TERMINATE;
+            }
+        }
+        return TraverseResult.CONTINUE;
+    }
+
+    private static boolean containsTieFlows(Branch branch, Branch.Side side, Set<Object> terminalsAndBoundaries) {
+        if (terminalsAndBoundaries.contains(branch.getTerminal(side))) {
+            return true;
+        }
+        if (branch instanceof TieLine) {
+            TieLine tl = (TieLine) branch;
+            return terminalsAndBoundaries.contains(tl.getHalf(side).getBoundary());
+        }
+        return false;
+    }
+
+    private static double getLeavingFlow(Terminal terminal) {
         return terminal.isConnected() ? terminal.getP() : 0;
     }
 }
