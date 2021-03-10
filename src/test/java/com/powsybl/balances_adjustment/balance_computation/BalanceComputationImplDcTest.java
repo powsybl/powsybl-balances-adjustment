@@ -108,7 +108,7 @@ public class BalanceComputationImplDcTest {
         BalanceComputationResult result = balanceComputation.run(testNetwork1, newStateId, parameters).join();
 
         assertEquals(BalanceComputationResult.Status.SUCCESS, result.getStatus());
-        assertEquals(5, result.getIterationCount());
+        assertEquals(2, result.getIterationCount());
         // Check net position does not change with the initial state id after balances
         assertEquals(1000., countryAreaFR.create(testNetwork1).getNetPosition(), 1.);
         // Check target net position after balances with the new state id
