@@ -26,7 +26,7 @@ public class ControlAreaTest {
         ControlAreaFactory factory = new ControlAreaFactory("_BECONTROLAREA");
         NetworkArea networkArea = factory.create(network);
         assertTrue(networkArea instanceof ControlArea);
-        assertEquals(-213.0966807507164d, networkArea.getNetPosition(), 0.00000001d);
+        assertEquals(-303.1336857507164d, networkArea.getNetPosition(), 0.00000001d);
         assertEquals(5, networkArea.getVoltageLevelIds().size());
     }
 }

@@ -91,14 +91,16 @@ public class ControlArea implements NetworkArea {
     private static TraverseResult findContainedVoltageLevels(Object edge, Set<String> voltageLevelIds, Set<Object> terminalsAndBoundaries) {
         if (edge instanceof Branch) {
             Branch branch = (Branch) edge;
-            voltageLevelIds.add(branch.getTerminal1().getVoltageLevel().getId());
             if (containsTieFlows(branch, Branch.Side.ONE, terminalsAndBoundaries)) {
+                voltageLevelIds.add(branch.getTerminal1().getVoltageLevel().getId());
                 return TraverseResult.TERMINATE;
             }
-            voltageLevelIds.add(branch.getTerminal2().getVoltageLevel().getId());
             if (containsTieFlows(branch, Branch.Side.TWO, terminalsAndBoundaries)) {
+                voltageLevelIds.add(branch.getTerminal2().getVoltageLevel().getId());
                 return TraverseResult.TERMINATE;
             }
+            voltageLevelIds.add(branch.getTerminal1().getVoltageLevel().getId());
+            voltageLevelIds.add(branch.getTerminal2().getVoltageLevel().getId());
         } else if (edge instanceof ThreeWindingsTransformer.Leg) {
             ThreeWindingsTransformer.Leg leg = (ThreeWindingsTransformer.Leg) edge;
             voltageLevelIds.add(leg.getTerminal().getVoltageLevel().getId());
