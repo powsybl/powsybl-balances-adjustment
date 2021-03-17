@@ -68,6 +68,13 @@ public class ControlArea implements NetworkArea {
         network.getVoltageLevelStream().forEach(voltageLevelGraph::addVertex);
         network.getBranchStream()
                 .filter(b -> !terminalsAndBoundaries.contains(b.getTerminal1()) && !terminalsAndBoundaries.contains(b.getTerminal2()))
+                .filter(b -> {
+                    if (b instanceof TieLine) {
+                        TieLine tl = (TieLine) b;
+                        return !terminalsAndBoundaries.contains(tl.getHalf1().getBoundary()) && !terminalsAndBoundaries.contains(tl.getHalf2().getBoundary());
+                    }
+                    return true;
+                })
                 .forEach(b -> voltageLevelGraph.addEdge(b.getTerminal1().getVoltageLevel(), b.getTerminal2().getVoltageLevel(), b));
         network.getThreeWindingsTransformerStream()
                 .filter(twt -> twt.getLegStream().noneMatch(leg -> terminalsAndBoundaries.contains(leg.getTerminal())))
