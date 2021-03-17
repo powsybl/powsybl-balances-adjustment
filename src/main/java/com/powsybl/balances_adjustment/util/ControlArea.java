@@ -51,16 +51,23 @@ public class ControlArea implements NetworkArea {
 
     private static Set<String> getVoltageLevelIds(String controlAreaId, Network network, Set<Object> terminalsAndBoundaries) {
         Graph<Object, Object> voltageLevelGraph = createVoltageLevelGraph(network, terminalsAndBoundaries);
-        return new ConnectivityInspector<>(voltageLevelGraph)
+        List<Set<Object>> connectedSets = new ConnectivityInspector<>(voltageLevelGraph)
                 .connectedSets()
                 .stream()
-                .filter(set -> set.size() > 1)
-                .findFirst()
-                .map(set -> set.stream()
-                        .filter(o -> o instanceof VoltageLevel)
-                        .map(vl -> ((VoltageLevel) vl).getId())
-                        .collect(Collectors.toSet()))
-                .orElseThrow(() -> new PowsyblException("Control area " + controlAreaId + " contains only one voltage level or less"));
+                .filter(set -> terminalsAndBoundaries.stream().anyMatch(o -> set.contains(getVoltageLevel(o))))
+                .collect(Collectors.toList());
+        if (connectedSets.isEmpty()) {
+            throw new PowsyblException("Control area " + controlAreaId + " does not contain any voltage level");
+        }
+        if (connectedSets.size() > 1) {
+            throw new PowsyblException("Control area " + controlAreaId + " contains several connected sets of voltage levels");
+        }
+        return connectedSets.iterator().next()
+                .stream()
+                .filter(o -> o instanceof VoltageLevel)
+                .map(vl -> (VoltageLevel) vl)
+                .map(Identifiable::getId)
+                .collect(Collectors.toSet());
     }
 
     private static Graph<Object, Object> createVoltageLevelGraph(Network network, Set<Object> terminalsAndBoundaries) {
@@ -85,6 +92,16 @@ public class ControlArea implements NetworkArea {
                     voltageLevelGraph.addEdge(twt, twt.getLeg3().getTerminal().getVoltageLevel(), twt.getLeg3());
                 });
         return voltageLevelGraph;
+    }
+
+    private static VoltageLevel getVoltageLevel(Object o) {
+        if (o instanceof Terminal) {
+            return ((Terminal) o).getVoltageLevel();
+        } else if (o instanceof Boundary) {
+            return ((Boundary) o).getVoltageLevel();
+        } else {
+            throw new AssertionError();
+        }
     }
 
     private static double getLeavingFlow(Terminal terminal) {
