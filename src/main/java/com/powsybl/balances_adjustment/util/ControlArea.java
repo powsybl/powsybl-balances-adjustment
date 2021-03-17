@@ -50,8 +50,8 @@ public class ControlArea implements NetworkArea {
     }
 
     private static Set<String> getVoltageLevelIds(String controlAreaId, Network network, Set<Object> terminalsAndBoundaries) {
-        Graph<Object, Object> voltageLevelGraph = createVoltageLevelGraph(network, terminalsAndBoundaries);
-        List<Set<Object>> connectedSets = new ConnectivityInspector<>(voltageLevelGraph)
+        Graph<Identifiable, Object> voltageLevelGraph = createVoltageLevelGraph(network, terminalsAndBoundaries);
+        List<Set<Identifiable>> connectedSets = new ConnectivityInspector<>(voltageLevelGraph)
                 .connectedSets()
                 .stream()
                 .filter(set -> terminalsAndBoundaries.stream().anyMatch(o -> set.contains(getVoltageLevel(o))))
@@ -65,13 +65,12 @@ public class ControlArea implements NetworkArea {
         return connectedSets.iterator().next()
                 .stream()
                 .filter(o -> o instanceof VoltageLevel)
-                .map(vl -> (VoltageLevel) vl)
                 .map(Identifiable::getId)
                 .collect(Collectors.toSet());
     }
 
-    private static Graph<Object, Object> createVoltageLevelGraph(Network network, Set<Object> terminalsAndBoundaries) {
-        Graph<Object, Object> voltageLevelGraph = new Pseudograph<>(Object.class);
+    private static Graph<Identifiable, Object> createVoltageLevelGraph(Network network, Set<Object> terminalsAndBoundaries) {
+        Graph<Identifiable, Object> voltageLevelGraph = new Pseudograph<>(Identifiable.class);
         network.getVoltageLevelStream().forEach(voltageLevelGraph::addVertex);
         network.getBranchStream()
                 .filter(b -> !terminalsAndBoundaries.contains(b.getTerminal1()) && !terminalsAndBoundaries.contains(b.getTerminal2()))
