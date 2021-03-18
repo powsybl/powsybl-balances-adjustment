@@ -321,7 +321,7 @@
     </iidm:extension>
     <iidm:extension id="urn:uuid:d400c631-75a0-4c30-8aed-832b0d282e73">
         <cca:cgmesControlAreas>
-            <cca:controlArea id="_BECONTROLAREA" name="BE" energyIdentCodeEic="10BE------1" netInterchange="-205.90011555672567">
+            <cca:controlArea id="_BECONTROLAREA" name="BE" energyIdentificationCodeEic="10BE------1" netInterchange="-205.90011555672567">
                 <cca:terminal id="_a16b4a6c-70b1-4abf-9a9d-bd0fa47f9fe4"/>
                 <cca:terminal id="_78736387-5f60-4832-b3fe-d50daf81b0a6"/>
                 <cca:terminal id="_17086487-56ba-4979-b8de-064025a6b4da"/>
