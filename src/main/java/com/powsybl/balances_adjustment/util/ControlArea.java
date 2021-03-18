@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.powsybl.cgmes.extensions.CgmesControlAreas;
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.*;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
@@ -28,7 +29,7 @@ public class ControlArea implements NetworkArea {
         terminalsAndBoundaries.addAll(cgmesControlAreaMapping.getCgmesControlArea(controlAreaId).getTerminals());
         terminalsAndBoundaries.addAll(cgmesControlAreaMapping.getCgmesControlArea(controlAreaId).getBoundaries());
 
-        voltageLevelIdsCache = getVoltageLevelIds(network, terminalsAndBoundaries);
+        voltageLevelIdsCache = getVoltageLevelIds(controlAreaId, network, terminalsAndBoundaries);
     }
 
     @Override
@@ -48,11 +49,18 @@ public class ControlArea implements NetworkArea {
         return Collections.unmodifiableSet(voltageLevelIdsCache);
     }
 
-    private static Set<String> getVoltageLevelIds(Network network, Set<Object> terminalsAndBoundaries) {
-        return new ConnectivityInspector<>(createVoltageLevelGraph(network, terminalsAndBoundaries))
-                .connectedSetOf(getVoltageLevel(terminalsAndBoundaries.iterator().next()))
+    private static Set<String> getVoltageLevelIds(String controlAreaId, Network network, Set<Object> terminalsAndBoundaries) {
+        ConnectivityInspector<VoltageLevel, Object> connectivityInspector = new ConnectivityInspector<>(createVoltageLevelGraph(network, terminalsAndBoundaries));
+        Set<Set<VoltageLevel>> connectedSets = terminalsAndBoundaries.stream()
+                .map(ControlArea::getVoltageLevel)
+                .map(connectivityInspector::connectedSetOf)
+                .collect(Collectors.toSet());
+        if (connectedSets.size() > 1) {
+            throw new PowsyblException("Control area " + controlAreaId + " contains more than one connected set of voltage levels");
+        }
+        return connectedSets.iterator().next()
                 .stream()
-                .map(Identifiable::getId)
+                .map(VoltageLevel::getId)
                 .collect(Collectors.toSet());
     }
 
