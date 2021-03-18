@@ -60,6 +60,7 @@ public class ControlArea implements NetworkArea {
         Graph<VoltageLevel, Object> voltageLevelGraph = new Pseudograph<>(Object.class);
         network.getVoltageLevelStream().forEach(voltageLevelGraph::addVertex);
         network.getBranchStream()
+                .filter(b -> b.getTerminal1().isConnected() && b.getTerminal2().isConnected())
                 .filter(b -> !terminalsAndBoundaries.contains(b.getTerminal1()) && !terminalsAndBoundaries.contains(b.getTerminal2()))
                 .filter(b -> {
                     if (b instanceof TieLine) {
@@ -70,6 +71,7 @@ public class ControlArea implements NetworkArea {
                 })
                 .forEach(b -> voltageLevelGraph.addEdge(b.getTerminal1().getVoltageLevel(), b.getTerminal2().getVoltageLevel()));
         network.getThreeWindingsTransformerStream()
+                .filter(twt -> twt.getLegStream().allMatch(leg -> leg.getTerminal().isConnected()))
                 .filter(twt -> twt.getLegStream().noneMatch(leg -> terminalsAndBoundaries.contains(leg.getTerminal())))
                 .forEach(twt -> {
                     voltageLevelGraph.addEdge(twt.getLeg1().getTerminal().getVoltageLevel(), twt.getLeg2().getTerminal().getVoltageLevel());
