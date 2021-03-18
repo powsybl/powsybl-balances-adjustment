@@ -10,7 +10,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.powsybl.cgmes.extensions.CgmesControlAreas;
-import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.*;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
@@ -29,7 +28,7 @@ public class ControlArea implements NetworkArea {
         terminalsAndBoundaries.addAll(cgmesControlAreaMapping.getCgmesControlArea(controlAreaId).getTerminals());
         terminalsAndBoundaries.addAll(cgmesControlAreaMapping.getCgmesControlArea(controlAreaId).getBoundaries());
 
-        voltageLevelIdsCache = getVoltageLevelIds(controlAreaId, network, terminalsAndBoundaries);
+        voltageLevelIdsCache = getVoltageLevelIds(network, terminalsAndBoundaries);
     }
 
     @Override
@@ -49,28 +48,16 @@ public class ControlArea implements NetworkArea {
         return Collections.unmodifiableSet(voltageLevelIdsCache);
     }
 
-    private static Set<String> getVoltageLevelIds(String controlAreaId, Network network, Set<Object> terminalsAndBoundaries) {
-        Graph<Identifiable, Object> voltageLevelGraph = createVoltageLevelGraph(network, terminalsAndBoundaries);
-        List<Set<Identifiable>> connectedSets = new ConnectivityInspector<>(voltageLevelGraph)
-                .connectedSets()
+    private static Set<String> getVoltageLevelIds(Network network, Set<Object> terminalsAndBoundaries) {
+        return new ConnectivityInspector<>(createVoltageLevelGraph(network, terminalsAndBoundaries))
+                .connectedSetOf(getVoltageLevel(terminalsAndBoundaries.iterator().next()))
                 .stream()
-                .filter(set -> terminalsAndBoundaries.stream().anyMatch(o -> set.contains(getVoltageLevel(o))))
-                .collect(Collectors.toList());
-        if (connectedSets.isEmpty()) {
-            throw new PowsyblException("Control area " + controlAreaId + " does not contain any voltage level");
-        }
-        if (connectedSets.size() > 1) {
-            throw new PowsyblException("Control area " + controlAreaId + " contains several connected sets of voltage levels");
-        }
-        return connectedSets.iterator().next()
-                .stream()
-                .filter(o -> o instanceof VoltageLevel)
                 .map(Identifiable::getId)
                 .collect(Collectors.toSet());
     }
 
-    private static Graph<Identifiable, Object> createVoltageLevelGraph(Network network, Set<Object> terminalsAndBoundaries) {
-        Graph<Identifiable, Object> voltageLevelGraph = new Pseudograph<>(Identifiable.class);
+    private static Graph<VoltageLevel, Object> createVoltageLevelGraph(Network network, Set<Object> terminalsAndBoundaries) {
+        Graph<VoltageLevel, Object> voltageLevelGraph = new Pseudograph<>(Object.class);
         network.getVoltageLevelStream().forEach(voltageLevelGraph::addVertex);
         network.getBranchStream()
                 .filter(b -> !terminalsAndBoundaries.contains(b.getTerminal1()) && !terminalsAndBoundaries.contains(b.getTerminal2()))
@@ -81,14 +68,13 @@ public class ControlArea implements NetworkArea {
                     }
                     return true;
                 })
-                .forEach(b -> voltageLevelGraph.addEdge(b.getTerminal1().getVoltageLevel(), b.getTerminal2().getVoltageLevel(), b));
+                .forEach(b -> voltageLevelGraph.addEdge(b.getTerminal1().getVoltageLevel(), b.getTerminal2().getVoltageLevel()));
         network.getThreeWindingsTransformerStream()
                 .filter(twt -> twt.getLegStream().noneMatch(leg -> terminalsAndBoundaries.contains(leg.getTerminal())))
                 .forEach(twt -> {
-                    voltageLevelGraph.addVertex(twt);
-                    voltageLevelGraph.addEdge(twt.getLeg1().getTerminal().getVoltageLevel(), twt, twt.getLeg1());
-                    voltageLevelGraph.addEdge(twt, twt.getLeg2().getTerminal().getVoltageLevel(), twt.getLeg2());
-                    voltageLevelGraph.addEdge(twt, twt.getLeg3().getTerminal().getVoltageLevel(), twt.getLeg3());
+                    voltageLevelGraph.addEdge(twt.getLeg1().getTerminal().getVoltageLevel(), twt.getLeg2().getTerminal().getVoltageLevel());
+                    voltageLevelGraph.addEdge(twt.getLeg1().getTerminal().getVoltageLevel(), twt.getLeg3().getTerminal().getVoltageLevel());
+                    voltageLevelGraph.addEdge(twt.getLeg2().getTerminal().getVoltageLevel(), twt.getLeg3().getTerminal().getVoltageLevel());
                 });
         return voltageLevelGraph;
     }
