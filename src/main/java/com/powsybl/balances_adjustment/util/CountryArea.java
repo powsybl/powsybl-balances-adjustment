@@ -24,7 +24,7 @@ public class CountryArea implements NetworkArea {
     private final List<Line> lineBordersCache;
     private final List<HvdcLine> hvdcLineBordersCache;
 
-    private final Set<String> voltageLevelIdsCache;
+    private final Set<Bus> busesCache;
 
     public CountryArea(Network network, List<Country> countries) {
         this.countries.addAll(countries);
@@ -39,9 +39,8 @@ public class CountryArea implements NetworkArea {
                 .filter(this::isAreaBorder)
                 .collect(Collectors.toList());
 
-        voltageLevelIdsCache = network.getVoltageLevelStream()
-                .filter(vl -> vl.getSubstation().getCountry().map(countries::contains).orElse(false))
-                .map(Identifiable::getId)
+        busesCache = network.getBusView().getBusStream()
+                .filter(bus -> bus.getVoltageLevel().getSubstation().getCountry().map(countries::contains).orElse(false))
                 .collect(Collectors.toSet());
     }
 
@@ -57,8 +56,8 @@ public class CountryArea implements NetworkArea {
     }
 
     @Override
-    public Collection<String> getVoltageLevelIds() {
-        return Collections.unmodifiableSet(voltageLevelIdsCache);
+    public Collection<Bus> getContainedBusViewBuses() {
+        return Collections.unmodifiableCollection(busesCache);
     }
 
     private boolean isAreaBorder(DanglingLine danglingLine) {

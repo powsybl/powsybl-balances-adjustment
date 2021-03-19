@@ -6,6 +6,8 @@
  */
 package com.powsybl.balances_adjustment.util;
 
+import com.powsybl.iidm.network.Bus;
+
 import java.util.Collection;
 import java.util.Collections;
 
@@ -26,7 +28,7 @@ public interface NetworkArea {
      */
     double getNetPosition();
 
-    default Collection<String> getVoltageLevelIds() {
+    default Collection<Bus> getContainedBusViewBuses() {
         return Collections.emptyList();
     }
 }

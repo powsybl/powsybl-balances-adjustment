@@ -75,6 +75,7 @@
                 <iidm:property name="CGMES.RegulatingControl" value="_84bf5be8-eb59-4555-b131-fce4d2d7775d"/>
                 <iidm:minMaxReactiveLimits minQ="-200.0" maxQ="200.0"/>
             </iidm:generator>
+            <iidm:load id="load_fict" name="load_fict" loadType="UNDEFINED" p0="1.0" q0="0.0" bus="_f96d552a-618d-4d0c-a39a-2dea3c411dee" connectableBus="_f96d552a-618d-4d0c-a39a-2dea3c411dee" p="1.0" q="0.0"/>
         </iidm:voltageLevel>
         <iidm:voltageLevel id="_b10b171b-3bc5-4849-bb1f-61ed9ea1ec7c" name="225.0" nominalV="225.0" lowVoltageLimit="202.5" highVoltageLimit="247.5" topologyKind="BUS_BREAKER">
             <iidm:busBreakerTopology>

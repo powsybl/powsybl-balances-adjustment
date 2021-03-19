@@ -15,21 +15,32 @@ import com.powsybl.iidm.network.*;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.graph.Pseudograph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Marcos de Miguel <demiguelm at aia.es>
  */
 public class ControlArea implements NetworkArea {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ControlArea.class);
+
     private final Set<Object> terminalsAndBoundaries = new HashSet<>();
-    private final Set<String> voltageLevelIdsCache;
+    private final Set<Bus> busesCache;
 
     public ControlArea(Network network, String controlAreaId) {
-        CgmesControlAreas cgmesControlAreaMapping = network.getExtension(CgmesControlAreas.class);
-        terminalsAndBoundaries.addAll(cgmesControlAreaMapping.getCgmesControlArea(controlAreaId).getTerminals());
-        terminalsAndBoundaries.addAll(cgmesControlAreaMapping.getCgmesControlArea(controlAreaId).getBoundaries());
+        CgmesControlAreas controlAreas = network.getExtension(CgmesControlAreas.class);
+        terminalsAndBoundaries.addAll(controlAreas.getCgmesControlArea(controlAreaId).getTerminals());
+        terminalsAndBoundaries.addAll(controlAreas.getCgmesControlArea(controlAreaId).getBoundaries());
 
-        voltageLevelIdsCache = getVoltageLevelIds(controlAreaId, network, terminalsAndBoundaries);
+        busesCache = getContainedBusViewBuses(network, terminalsAndBoundaries);
+    }
+
+    public ControlArea(Network network, Set<Terminal> terminals, Set<Boundary> boundaries) {
+        terminalsAndBoundaries.addAll(terminals);
+        terminalsAndBoundaries.addAll(boundaries);
+
+        busesCache = getContainedBusViewBuses(network, terminalsAndBoundaries);
     }
 
     @Override
@@ -45,28 +56,26 @@ public class ControlArea implements NetworkArea {
     }
 
     @Override
-    public Collection<String> getVoltageLevelIds() {
-        return Collections.unmodifiableSet(voltageLevelIdsCache);
+    public Collection<Bus> getContainedBusViewBuses() {
+        return Collections.unmodifiableSet(busesCache);
     }
 
-    private static Set<String> getVoltageLevelIds(String controlAreaId, Network network, Set<Object> terminalsAndBoundaries) {
-        ConnectivityInspector<VoltageLevel, Object> connectivityInspector = new ConnectivityInspector<>(createVoltageLevelGraph(network, terminalsAndBoundaries));
-        Set<Set<VoltageLevel>> connectedSets = terminalsAndBoundaries.stream()
-                .map(ControlArea::getVoltageLevel)
+    private static Set<Bus> getContainedBusViewBuses(Network network, Set<Object> terminalsAndBoundaries) {
+        ConnectivityInspector<Bus, Object> connectivityInspector = new ConnectivityInspector<>(createBusesGraph(network, terminalsAndBoundaries));
+        Set<Set<Bus>> busesSets = terminalsAndBoundaries.stream()
+                .map(ControlArea::getBus)
                 .map(connectivityInspector::connectedSetOf)
                 .collect(Collectors.toSet());
-        if (connectedSets.size() > 1) {
-            throw new PowsyblException("Control area " + controlAreaId + " contains more than one connected set of voltage levels");
+        if (busesSets.size() > 1) {
+            throw new PowsyblException("Control area contains more than one synchronous component. " +
+                    "You should use utility methods in NetworkAreaUtil to create proper control areas");
         }
-        return connectedSets.iterator().next()
-                .stream()
-                .map(VoltageLevel::getId)
-                .collect(Collectors.toSet());
+        return busesSets.stream().flatMap(Set::stream).collect(Collectors.toSet());
     }
 
-    private static Graph<VoltageLevel, Object> createVoltageLevelGraph(Network network, Set<Object> terminalsAndBoundaries) {
-        Graph<VoltageLevel, Object> voltageLevelGraph = new Pseudograph<>(Object.class);
-        network.getVoltageLevelStream().forEach(voltageLevelGraph::addVertex);
+    private static Graph<Bus, Object> createBusesGraph(Network network, Set<Object> terminalsAndBoundaries) {
+        Graph<Bus, Object> busesGraph = new Pseudograph<>(Object.class);
+        network.getBusView().getBusStream().forEach(busesGraph::addVertex);
         network.getBranchStream()
                 .filter(b -> b.getTerminal1().isConnected() && b.getTerminal2().isConnected())
                 .filter(b -> !terminalsAndBoundaries.contains(b.getTerminal1()) && !terminalsAndBoundaries.contains(b.getTerminal2()))
@@ -77,26 +86,36 @@ public class ControlArea implements NetworkArea {
                     }
                     return true;
                 })
-                .forEach(b -> voltageLevelGraph.addEdge(b.getTerminal1().getVoltageLevel(), b.getTerminal2().getVoltageLevel()));
+                .forEach(b -> busesGraph.addEdge(b.getTerminal1().getBusView().getBus(), b.getTerminal2().getBusView().getBus()));
         network.getThreeWindingsTransformerStream()
                 .filter(twt -> twt.getLegStream().allMatch(leg -> leg.getTerminal().isConnected()))
                 .filter(twt -> twt.getLegStream().noneMatch(leg -> terminalsAndBoundaries.contains(leg.getTerminal())))
                 .forEach(twt -> {
-                    voltageLevelGraph.addEdge(twt.getLeg1().getTerminal().getVoltageLevel(), twt.getLeg2().getTerminal().getVoltageLevel());
-                    voltageLevelGraph.addEdge(twt.getLeg1().getTerminal().getVoltageLevel(), twt.getLeg3().getTerminal().getVoltageLevel());
-                    voltageLevelGraph.addEdge(twt.getLeg2().getTerminal().getVoltageLevel(), twt.getLeg3().getTerminal().getVoltageLevel());
+                    busesGraph.addEdge(twt.getLeg1().getTerminal().getBusView().getBus(), twt.getLeg2().getTerminal().getBusView().getBus());
+                    busesGraph.addEdge(twt.getLeg1().getTerminal().getBusView().getBus(), twt.getLeg3().getTerminal().getBusView().getBus());
+                    busesGraph.addEdge(twt.getLeg2().getTerminal().getBusView().getBus(), twt.getLeg3().getTerminal().getBusView().getBus());
                 });
-        return voltageLevelGraph;
+        network.getHvdcLineStream()
+                .filter(hvdcLine -> hvdcLine.getConverterStation1().getTerminal().isConnected() && hvdcLine.getConverterStation2().getTerminal().isConnected())
+                .filter(hvdcLine -> !terminalsAndBoundaries.contains(hvdcLine.getConverterStation1().getTerminal()) && !terminalsAndBoundaries.contains(hvdcLine.getConverterStation2().getTerminal()))
+                .forEach(hvdcLine -> {
+                    busesGraph.addEdge(hvdcLine.getConverterStation1().getTerminal().getBusView().getBus(), hvdcLine.getConverterStation2().getTerminal().getBusView().getBus());
+                });
+        return busesGraph;
     }
 
-    private static VoltageLevel getVoltageLevel(Object o) {
+    private static Bus getBus(Object o) {
         if (o instanceof Terminal) {
-            return ((Terminal) o).getVoltageLevel();
+            return ((Terminal) o).getBusView().getBus();
         } else if (o instanceof Boundary) {
-            return ((Boundary) o).getVoltageLevel();
-        } else {
-            throw new AssertionError();
+            Boundary b = (Boundary) o;
+            if (b.getConnectable() instanceof DanglingLine) {
+                return ((DanglingLine) b.getConnectable()).getTerminal().getBusView().getBus();
+            } else if (b.getConnectable() instanceof TieLine) {
+                return ((TieLine) b.getConnectable()).getTerminal(b.getSide()).getBusView().getBus();
+            }
         }
+        throw new AssertionError();
     }
 
     private static double getLeavingFlow(Terminal terminal) {
