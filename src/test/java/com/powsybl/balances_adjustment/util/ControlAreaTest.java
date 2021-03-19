@@ -31,7 +31,7 @@ public class ControlAreaTest {
         List<NetworkAreaFactory> controlAreaFactories = NetworkAreaUtil.createNetworkAreaFactoryBySynchronousComponent(network, "_BECONTROLAREA");
         assertEquals(1, controlAreaFactories.size());
 
-        NetworkAreaFactory factory = controlAreaFactories.get(0);
+        NetworkAreaFactory factory = new ControlAreaFactory("_BECONTROLAREA");
         NetworkArea networkArea = factory.create(network);
         assertTrue(networkArea instanceof ControlArea);
         assertEquals(-212.0966807507164d, networkArea.getNetPosition(), 0.00000001d);
