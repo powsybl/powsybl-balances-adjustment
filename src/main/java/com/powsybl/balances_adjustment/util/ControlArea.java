@@ -94,9 +94,7 @@ public class ControlArea implements NetworkArea {
         network.getHvdcLineStream()
                 .filter(hvdcLine -> hvdcLine.getConverterStation1().getTerminal().isConnected() && hvdcLine.getConverterStation2().getTerminal().isConnected())
                 .filter(hvdcLine -> !terminalsAndBoundaries.contains(hvdcLine.getConverterStation1().getTerminal()) && !terminalsAndBoundaries.contains(hvdcLine.getConverterStation2().getTerminal()))
-                .forEach(hvdcLine -> {
-                    busesGraph.addEdge(hvdcLine.getConverterStation1().getTerminal().getBusView().getBus(), hvdcLine.getConverterStation2().getTerminal().getBusView().getBus());
-                });
+                .forEach(hvdcLine -> busesGraph.addEdge(hvdcLine.getConverterStation1().getTerminal().getBusView().getBus(), hvdcLine.getConverterStation2().getTerminal().getBusView().getBus()));
         return busesGraph;
     }
 

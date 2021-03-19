@@ -9,6 +9,7 @@ package com.powsybl.balances_adjustment.util;
 import com.powsybl.action.util.Scalable;
 import com.powsybl.cgmes.extensions.CgmesControlArea;
 import com.powsybl.cgmes.extensions.CgmesControlAreas;
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.*;
 
 import java.util.*;
@@ -31,23 +32,24 @@ public final class NetworkAreaUtil {
             cc = terminalCc;
         }
         for (Boundary b : controlArea.getBoundaries()) {
-            int boundaryCc;
-            if (b.getConnectable() instanceof DanglingLine) {
-                DanglingLine dl = (DanglingLine) b.getConnectable();
-                boundaryCc = dl.getTerminal().getBusView().getBus().getSynchronousComponent().getNum();
-                if (cc != -1 && cc != boundaryCc) {
-                    return true;
-                }
-                cc = boundaryCc;
-            } else if (b.getConnectable() instanceof TieLine) {
-                TieLine tl = (TieLine) b.getConnectable();
-                boundaryCc = tl.getTerminal(b.getSide()).getBusView().getBus().getSynchronousComponent().getNum();
-                if (cc != -1 && cc != boundaryCc) {
-                    return true;
-                }
+            int boundaryCc = getSynchronousComponentNum(b);
+            if (cc != -1 && cc != boundaryCc) {
+                return true;
             }
+            cc = boundaryCc;
         }
         return false;
+    }
+
+    private static int getSynchronousComponentNum(Boundary b) {
+        if (b.getConnectable() instanceof DanglingLine) {
+            DanglingLine dl = (DanglingLine) b.getConnectable();
+            return dl.getTerminal().getBusView().getBus().getSynchronousComponent().getNum();
+        } else if (b.getConnectable() instanceof Line) {
+            Line l = (Line) b.getConnectable();
+            return l.getTerminal(b.getSide()).getBusView().getBus().getSynchronousComponent().getNum();
+        }
+        throw new PowsyblException("Unexpected type of " + b.getConnectable());
     }
 
     public static List<NetworkAreaFactory> createNetworkAreaFactoryBySynchronousComponent(Network network, String controlAreaId) {
