@@ -15,15 +15,11 @@ import com.powsybl.iidm.network.*;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.graph.Pseudograph;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Marcos de Miguel <demiguelm at aia.es>
  */
 public class ControlArea implements NetworkArea {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ControlArea.class);
 
     private final Set<Object> terminalsAndBoundaries = new HashSet<>();
     private final Set<Bus> busesCache;
