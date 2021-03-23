@@ -62,10 +62,16 @@ public final class NetworkAreaUtil {
         controlArea.getBoundaries().forEach(b -> {
             if (b.getConnectable() instanceof DanglingLine) {
                 DanglingLine dl = (DanglingLine) b.getConnectable();
-                boundariesBySynchronousComponent.computeIfAbsent(dl.getTerminal().getBusView().getBus().getSynchronousComponent().getNum(), k -> new HashSet<>()).add(b);
+                Bus bus = dl.getTerminal().getBusView().getBus();
+                if (bus != null) {
+                    boundariesBySynchronousComponent.computeIfAbsent(bus.getSynchronousComponent().getNum(), k -> new HashSet<>()).add(b);
+                }
             } else if (b.getConnectable() instanceof TieLine) {
                 TieLine tl = (TieLine) b.getConnectable();
-                boundariesBySynchronousComponent.computeIfAbsent(tl.getTerminal(b.getSide()).getBusView().getBus().getSynchronousComponent().getNum(), k -> new HashSet<>()).add(b);
+                Bus bus = tl.getTerminal(b.getSide()).getBusView().getBus();
+                if (bus != null) {
+                    boundariesBySynchronousComponent.computeIfAbsent(bus.getSynchronousComponent().getNum(), k -> new HashSet<>()).add(b);
+                }
             }
         });
         for (int i : Stream.of(terminalsBySynchronousComponent.keySet(), boundariesBySynchronousComponent.keySet()).flatMap(Set::stream).collect(Collectors.toSet())) {

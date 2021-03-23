@@ -57,9 +57,11 @@ public class ControlArea implements NetworkArea {
     }
 
     private static Set<Bus> getContainedBusViewBuses(Network network, Set<Object> terminalsAndBoundaries) {
-        ConnectivityInspector<Bus, Object> connectivityInspector = new ConnectivityInspector<>(createBusesGraph(network, terminalsAndBoundaries));
+        Graph<Bus, Object> busesGraph = createBusesGraph(network, terminalsAndBoundaries);
+        ConnectivityInspector<Bus, Object> connectivityInspector = new ConnectivityInspector<>(busesGraph);
         Set<Set<Bus>> busesSets = terminalsAndBoundaries.stream()
                 .map(ControlArea::getBus)
+                .filter(busesGraph::containsVertex) // sometimes the start vertex is not in the graph when the control area is flawed
                 .map(connectivityInspector::connectedSetOf)
                 .collect(Collectors.toSet());
         if (busesSets.size() > 1) {
