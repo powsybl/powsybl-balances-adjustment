@@ -81,14 +81,13 @@ public final class NetworkAreaUtil {
     }
 
     public static List<Scalable> createLoadScalables(NetworkArea area) {
-        List<Scalable> scalables = new ArrayList<>();
-        area.getContainedBusViewBuses().stream()
+        return area.getContainedBusViewBuses().stream()
                 .flatMap(Bus::getConnectedTerminalStream)
                 .filter(t -> t.getConnectable() instanceof Load) // TODO: should also filter if they are conform loads or not
                 .map(t -> (Load) t.getConnectable())
                 .filter(load -> load.getP0() >= 0)
-                .forEach(load -> scalables.add(Scalable.onLoad(load.getId())));
-        return scalables;
+                .map(load -> (Scalable) Scalable.onLoad(load.getId()))
+                .collect(Collectors.toList());
     }
 
     private NetworkAreaUtil() {
