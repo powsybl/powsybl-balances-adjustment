@@ -86,6 +86,7 @@ public final class NetworkAreaUtil {
                 .flatMap(Bus::getConnectedTerminalStream)
                 .filter(t -> t.getConnectable() instanceof Load) // TODO: should also filter if they are conform loads or not
                 .map(t -> (Load) t.getConnectable())
+                .filter(load -> load.getP0() >= 0)
                 .forEach(load -> scalables.add(Scalable.onLoad(load.getId())));
         return scalables;
     }
