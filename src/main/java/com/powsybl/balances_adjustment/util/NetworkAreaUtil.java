@@ -66,8 +66,8 @@ public final class NetworkAreaUtil {
                 if (bus != null) {
                     boundariesBySynchronousComponent.computeIfAbsent(bus.getSynchronousComponent().getNum(), k -> new HashSet<>()).add(b);
                 }
-            } else if (b.getConnectable() instanceof TieLine) {
-                TieLine tl = (TieLine) b.getConnectable();
+            } else if (b.getConnectable() instanceof Line) {
+                Line tl = (Line) b.getConnectable();
                 Bus bus = tl.getTerminal(b.getSide()).getBusView().getBus();
                 if (bus != null) {
                     boundariesBySynchronousComponent.computeIfAbsent(bus.getSynchronousComponent().getNum(), k -> new HashSet<>()).add(b);
