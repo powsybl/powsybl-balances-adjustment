@@ -25,14 +25,22 @@ public final class NetworkAreaUtil {
         CgmesControlArea controlArea = network.getExtension(CgmesControlAreas.class).getCgmesControlArea(controlAreaId);
         int cc = -1;
         for (Terminal terminal : controlArea.getTerminals()) {
-            int terminalCc = terminal.getBusView().getBus().getSynchronousComponent().getNum();
+            Bus bus = terminal.getBusView().getBus();
+            if (bus == null) {
+                return true;
+            }
+            int terminalCc = bus.getSynchronousComponent().getNum();
             if (cc != -1 && cc != terminalCc) {
                 return true;
             }
             cc = terminalCc;
         }
         for (Boundary b : controlArea.getBoundaries()) {
-            int boundaryCc = getSynchronousComponentNum(b);
+            Bus bus = getBusViewBus(b);
+            if (bus == null) {
+                return true;
+            }
+            int boundaryCc = bus.getSynchronousComponent().getNum();
             if (cc != -1 && cc != boundaryCc) {
                 return true;
             }
@@ -41,13 +49,13 @@ public final class NetworkAreaUtil {
         return false;
     }
 
-    private static int getSynchronousComponentNum(Boundary b) {
+    private static Bus getBusViewBus(Boundary b) {
         if (b.getConnectable() instanceof DanglingLine) {
             DanglingLine dl = (DanglingLine) b.getConnectable();
-            return dl.getTerminal().getBusView().getBus().getSynchronousComponent().getNum();
+            return dl.getTerminal().getBusView().getBus();
         } else if (b.getConnectable() instanceof Line) {
             Line l = (Line) b.getConnectable();
-            return l.getTerminal(b.getSide()).getBusView().getBus().getSynchronousComponent().getNum();
+            return l.getTerminal(b.getSide()).getBusView().getBus();
         }
         throw new PowsyblException("Unexpected type of " + b.getConnectable());
     }
@@ -60,18 +68,9 @@ public final class NetworkAreaUtil {
         CgmesControlArea controlArea = network.getExtension(CgmesControlAreas.class).getCgmesControlArea(controlAreaId);
         controlArea.getTerminals().forEach(t -> terminalsBySynchronousComponent.computeIfAbsent(t.getBusView().getBus().getSynchronousComponent().getNum(), k -> new HashSet<>()).add(t));
         controlArea.getBoundaries().forEach(b -> {
-            if (b.getConnectable() instanceof DanglingLine) {
-                DanglingLine dl = (DanglingLine) b.getConnectable();
-                Bus bus = dl.getTerminal().getBusView().getBus();
-                if (bus != null) {
-                    boundariesBySynchronousComponent.computeIfAbsent(bus.getSynchronousComponent().getNum(), k -> new HashSet<>()).add(b);
-                }
-            } else if (b.getConnectable() instanceof Line) {
-                Line tl = (Line) b.getConnectable();
-                Bus bus = tl.getTerminal(b.getSide()).getBusView().getBus();
-                if (bus != null) {
-                    boundariesBySynchronousComponent.computeIfAbsent(bus.getSynchronousComponent().getNum(), k -> new HashSet<>()).add(b);
-                }
+            Bus bus = getBusViewBus(b);
+            if (bus != null) {
+                boundariesBySynchronousComponent.computeIfAbsent(bus.getSynchronousComponent().getNum(), k -> new HashSet<>()).add(b);
             }
         });
         for (int i : Stream.of(terminalsBySynchronousComponent.keySet(), boundariesBySynchronousComponent.keySet()).flatMap(Set::stream).collect(Collectors.toSet())) {

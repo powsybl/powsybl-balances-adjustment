@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 public class ControlAreaTest {
 
     @Test
-    public void testNetPosition() {
+    public void testBeControlArea() {
         Network network = Importers.loadNetwork("controlArea.xiidm", getClass().getResourceAsStream("/controlArea.xiidm"));
 
         assertFalse(NetworkAreaUtil.containsSeveralSynchronousComponent(network, "_BECONTROLAREA"));
@@ -48,5 +48,16 @@ public class ControlAreaTest {
 
         List<Scalable> scalables2 = NetworkAreaUtil.createLoadScalables(networkArea2);
         assertEquals(3, scalables2.size());
+    }
+
+    @Test
+    public void testFaultyControlArea() {
+        Network network = Importers.loadNetwork("controlArea.xiidm", getClass().getResourceAsStream("/controlArea.xiidm"));
+
+        assertTrue(NetworkAreaUtil.containsSeveralSynchronousComponent(network, "FAULTY"));
+
+        List<NetworkAreaFactory> controlAreaFactories = NetworkAreaUtil.createNetworkAreaFactoryBySynchronousComponent(network, "FAULTY");
+        assertEquals(2, controlAreaFactories.size());
+
     }
 }

@@ -2,6 +2,22 @@
 <iidm:network xmlns:iidm="http://www.powsybl.org/schema/iidm/1_5" xmlns:csshm="http://www.powsybl.org/schema/iidm/ext/cgmes_ssh_metadata/1_0" xmlns:crc="http://www.powsybl.org/schema/iidm/ext/coordinated_reactive_control/1_0" xmlns:cc="http://www.powsybl.org/schema/iidm/ext/cim_characteristics/1_0" xmlns:csm="http://www.powsybl.org/schema/iidm/ext/cgmes_sv_metadata/1_0" xmlns:apc="http://www.itesla_project.eu/schema/iidm/ext/active_power_control/1_0" xmlns:cca="http://www.powsybl.org/schema/iidm/ext/cgmes_control_area/1_0" id="urn:uuid:d400c631-75a0-4c30-8aed-832b0d282e73" caseDate="2014-06-01T10:30:00.000Z" forecastDistance="0" sourceFormat="CGMES">
     <iidm:property name="CGMESModelDetail" value="bus-branch"/>
     <iidm:substation id="_87f7002b-056f-4a6a-a872-1744eea757e3" name="Anvers" country="BE" geographicalTags="_c1d5c0378f8011e08e4d00247eb1f55e">
+        <iidm:voltageLevel id="FICTITIOUS" name="220.0" nominalV="225.0" lowVoltageLimit="202.5" highVoltageLimit="247.5" topologyKind="BUS_BREAKER">
+            <iidm:busBreakerTopology>
+                <iidm:bus id="FICTITIOUS_BUS" v="224.871595" angle="-7.6249"/>
+            </iidm:busBreakerTopology>
+            <iidm:generator id="FICTITIOUS_GEN" energySource="OTHER" minP="50.0" maxP="200.0" ratedS="300.0" voltageRegulatorOn="true" targetP="90.0" targetV="115.5" targetQ="100.256" bus="FICTITIOUS_BUS" connectableBus="FICTITIOUS_BUS" p="-90.0" q="-100.256">
+                <iidm:reactiveCapabilityCurve>
+                    <iidm:point p="-100.0" minQ="-200.0" maxQ="200.0"/>
+                    <iidm:point p="0.0" minQ="-300.0" maxQ="300.0"/>
+                    <iidm:point p="100.0" minQ="-200.0" maxQ="200.0"/>
+                </iidm:reactiveCapabilityCurve>
+            </iidm:generator>
+            <iidm:load id="FICTITIOUS_LOAD" loadType="FICTITIOUS" p0="1.0" q0="0.0" bus="FICTITIOUS_BUS" connectableBus="FICTITIOUS_BUS" p="1.0" q="0.0"/>
+            <iidm:danglingLine id="FICTITIOUS_DL" p0="-26.805006" q0="1.489867" r="4.6" x="69.0" g="5.75E-5" b="2.1677E-5" ucteXnodeCode="TN_Border_ST24" bus="FICTITIOUS_BUS" connectableBus="FICTITIOUS_BUS" p="-23.837678435181406" q="1.2706014141616382">
+                <iidm:currentLimits permanentLimit="1180.0"/>
+            </iidm:danglingLine>
+        </iidm:voltageLevel>
         <iidm:voltageLevel id="_d0486169-2205-40b2-895e-b672ecb9e5fc" name="220.0" nominalV="225.0" lowVoltageLimit="202.5" highVoltageLimit="247.5" topologyKind="BUS_BREAKER">
             <iidm:busBreakerTopology>
                 <iidm:bus id="_f70f6bad-eb8d-4b8f-8431-4ab93581514e" name="BE-Busbar_2" v="224.871595" angle="-7.6249"/>
@@ -330,6 +346,16 @@
                 <cca:terminal id="_b58bf21a-096a-4dae-9a01-3f03b60c24c7_fict" side="ONE"/>
                 <cca:terminal id="_b58bf21a-096a-4dae-9a01-3f03b60c24c7_fict_2" side="TWO"/>
                 <cca:boundary id="_b18cd1aa-7808-49b9-a7cf-605eaf07b006"/>
+            </cca:controlArea>
+            <cca:controlArea id="FAULTY" name="FAULTY" energyIdentificationCodeEic="FAULTY" netInterchange="0.0">
+                <cca:terminal id="_a16b4a6c-70b1-4abf-9a9d-bd0fa47f9fe4"/>
+                <cca:terminal id="_78736387-5f60-4832-b3fe-d50daf81b0a6"/>
+                <cca:terminal id="_17086487-56ba-4979-b8de-064025a6b4da"/>
+                <cca:terminal id="_ed0c5d75-4a54-43c8-b782-b20d7431630b"/>
+                <cca:terminal id="_b58bf21a-096a-4dae-9a01-3f03b60c24c7_fict" side="ONE"/>
+                <cca:terminal id="_b58bf21a-096a-4dae-9a01-3f03b60c24c7_fict_2" side="TWO"/>
+                <cca:boundary id="_b18cd1aa-7808-49b9-a7cf-605eaf07b006"/>
+                <cca:boundary id="FICTITIOUS_DL"/>
             </cca:controlArea>
         </cca:cgmesControlAreas>
         <csshm:cgmesSshMetadata description="CGMES Conformity Assessment: 'MicroGridTestConfiguration....BC (MAS BE) Test Configuration. The model is owned by ENTSO-E and is provided by ENTSO-E “as it is”. To the fullest extent permitted by law, ENTSO-E shall not be liable for any damages of any kind arising out of the use of the model (including any of its subsequent modifications). ENTSO-E neither warrants, nor represents that the use of the model will not infringe the rights of third parties. Any use of the model shall  include a reference to ENTSO-E. ENTSO-E web site is the only official source of information related to the model." sshVersion="2" modelingAuthoritySet="http://elia.be/CGMES/2.4.15">
