@@ -82,7 +82,7 @@ public final class NetworkAreaUtil {
     public static List<Scalable> createLoadScalables(NetworkArea area) {
         return area.getContainedBusViewBuses().stream()
                 .flatMap(Bus::getConnectedTerminalStream)
-                .filter(t -> t.getConnectable() instanceof Load) // TODO: should also filter if they are conform loads or not
+                .filter(t -> t.getConnectable() instanceof Load) // TODO: should also filter if they are conform loads or not (non conform loads and equivalent injections)
                 .map(t -> (Load) t.getConnectable())
                 .filter(load -> load.getP0() >= 0)
                 .map(load -> (Scalable) Scalable.onLoad(load.getId()))
