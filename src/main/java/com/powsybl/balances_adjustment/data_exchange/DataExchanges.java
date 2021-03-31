@@ -174,21 +174,16 @@ public class DataExchanges {
         return timeSeriesByMetadata.get(key.get());
     }
 
-    private boolean search(TimeSeriesMetadata metaData, String inDomainId, String outDomainId) {
-        java.util.Map<java.lang.String, java.lang.String> tags = metaData.getTags();
-        return inDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID)) &&
-                outDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID));
-    }
-
     public List<DoubleTimeSeries> getTimeSeries(String inDomainId, String outDomainId) {
         Objects.requireNonNull(inDomainId, IN_DOMAIN_ID_CANNOT_BE_NULL);
         Objects.requireNonNull(outDomainId, OUT_DOMAIN_ID_CANNOT_BE_NULL);
-        List<TimeSeriesMetadata> keys = timeSeriesByMetadata.keySet().stream().filter(metaData -> search(metaData, inDomainId, outDomainId)).collect(Collectors.toList());
-        return keys.stream().map(timeSeriesByMetadata::get).collect(Collectors.toList());
-    }
+        List<TimeSeriesMetadata> keys = timeSeriesByMetadata.keySet().stream().filter(metaData -> {
+            java.util.Map<java.lang.String, java.lang.String> tags = metaData.getTags();
+            return inDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID)) &&
+                    outDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID));
+        }).collect(Collectors.toList());
 
-    public List<DoubleTimeSeries> getTimeSeries2(String inDomainId, String outDomainId) {
-        return getTimeSeries().stream().filter(t -> search(t.getMetadata(), inDomainId, outDomainId)).collect(Collectors.toList());
+        return keys.stream().map(timeSeriesByMetadata::get).collect(Collectors.toList());
     }
 
     public Map<String, Double> getValuesAt(Instant instant) {
