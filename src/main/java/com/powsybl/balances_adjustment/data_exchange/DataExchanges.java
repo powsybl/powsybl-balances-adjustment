@@ -29,8 +29,6 @@ public class DataExchanges {
     private static final String INSTANT_CANNOT_BE_NULL = "Instant cannot be null";
     private static final String ID_CANNOT_BE_NULL = "TimeSeriesId cannot be null";
     private static final String IDS_CANNOT_BE_NULL = "TimeSeriesIds cannot be null";
-    private static final String IN_DOMAIN_ID_CANNOT_BE_NULL = "inDomainId cannot be null";
-    private static final String OUT_DOMAIN_ID_CANNOT_BE_NULL = "outDomainId cannot be null";
 
     /** Document identification. */
     private final String mRID;
@@ -67,12 +65,12 @@ public class DataExchanges {
     private final StandardCodingSchemeType domainCodingScheme;
 
     // Time Series
-    private final Map<TimeSeriesMetadata, DoubleTimeSeries> timeSeriesByMetadata = new HashMap<>();
+    private final Map<String, DoubleTimeSeries> timeSeriesById = new HashMap<>();
 
     DataExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
                   String senderId, StandardCodingSchemeType senderCodingScheme, StandardRoleType senderMarketRole,
                   String receiverId, StandardCodingSchemeType receiverCodingScheme, StandardRoleType receiverMarketRole,
-                  DateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<TimeSeriesMetadata, StoredDoubleTimeSeries> timeSeriesByMetadata,
+                  DateTime creationDate, Interval period, String datasetMarketDocumentMRId, StandardStatusType docStatus, Map<String, StoredDoubleTimeSeries> timeSeriesById,
                   String domainId, StandardCodingSchemeType domainCodingScheme) {
         this.mRID = Objects.requireNonNull(mRID, "mRID is missing");
         this.revisionNumber = checkRevisionNumber(revisionNumber);
@@ -86,7 +84,7 @@ public class DataExchanges {
         this.receiverMarketRole = Objects.requireNonNull(receiverMarketRole, "Receiver role is missing");
         this.creationDate = Objects.requireNonNull(creationDate, "Creation DateTime is missing");
         this.period = Objects.requireNonNull(period, "Time interval is missing");
-        this.timeSeriesByMetadata.putAll(timeSeriesByMetadata);
+        this.timeSeriesById.putAll(timeSeriesById);
         // Optional data
         this.datasetMarketDocumentMRId = datasetMarketDocumentMRId;
         this.docStatus = docStatus;
@@ -162,34 +160,22 @@ public class DataExchanges {
 
     // Utilities
     public Collection<DoubleTimeSeries> getTimeSeries() {
-        return Collections.unmodifiableCollection(timeSeriesByMetadata.values());
+        return Collections.unmodifiableCollection(timeSeriesById.values());
     }
 
     public DoubleTimeSeries getTimeSeries(String timeSeriesId) {
         Objects.requireNonNull(timeSeriesId, ID_CANNOT_BE_NULL);
-        Optional<TimeSeriesMetadata> key = timeSeriesByMetadata.keySet().stream().filter(metadata -> metadata.getName().equalsIgnoreCase(timeSeriesId)).findAny();
-        if (!key.isPresent()) {
+        if (!timeSeriesById.containsKey(timeSeriesId)) {
             throw new PowsyblException(String.format("TimeSeries '%s' not found", timeSeriesId));
         }
-        return timeSeriesByMetadata.get(key.get());
-    }
-
-    public List<DoubleTimeSeries> getTimeSeries(String inDomainId, String outDomainId) {
-        Objects.requireNonNull(inDomainId, IN_DOMAIN_ID_CANNOT_BE_NULL);
-        Objects.requireNonNull(outDomainId, OUT_DOMAIN_ID_CANNOT_BE_NULL);
-        List<TimeSeriesMetadata> keys = timeSeriesByMetadata.keySet().stream().filter(metaData -> {
-            java.util.Map<java.lang.String, java.lang.String> tags = metaData.getTags();
-            return inDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID)) &&
-                    outDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID));
-        }).collect(Collectors.toList());
-
-        return keys.stream().map(timeSeriesByMetadata::get).collect(Collectors.toList());
+        return timeSeriesById.get(timeSeriesId);
     }
 
     public Map<String, Double> getValuesAt(Instant instant) {
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
-        return timeSeriesByMetadata.keySet().stream()
-                .collect(Collectors.toMap(TimeSeriesMetadata::getName, metadata -> getValueAt(getTimeSeries(metadata.getName()), instant)));
+
+        return timeSeriesById.keySet().stream()
+                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant)));
     }
 
     public double getValueAt(String timeSeriesId, Instant instant) {
