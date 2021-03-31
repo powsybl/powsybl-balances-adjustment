@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *  Pan European Verification Function (PEVF) &
@@ -169,6 +170,18 @@ public class DataExchanges {
             throw new PowsyblException(String.format("TimeSeries '%s' not found", timeSeriesId));
         }
         return timeSeriesById.get(timeSeriesId);
+    }
+
+    public Stream<DoubleTimeSeries> getTimeSeriesStream(String inDomainId, String outDomainId) {
+        return getTimeSeries().stream().filter(t -> {
+            java.util.Map<java.lang.String, java.lang.String> tags = t.getMetadata().getTags();
+            return inDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID)) &&
+                    outDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID));
+        });
+    }
+
+    public List<DoubleTimeSeries> getTimeSeries(String inDomainId, String outDomainId) {
+        return getTimeSeriesStream(inDomainId, outDomainId).collect(Collectors.toList());
     }
 
     public Map<String, Double> getValuesAt(Instant instant) {
