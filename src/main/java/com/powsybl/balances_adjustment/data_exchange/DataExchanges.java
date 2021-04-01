@@ -6,6 +6,8 @@
  */
 package com.powsybl.balances_adjustment.data_exchange;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.timeseries.*;
 import org.joda.time.DateTime;
@@ -66,7 +68,7 @@ public class DataExchanges {
     private final StandardCodingSchemeType domainCodingScheme;
 
     // Time Series
-    private final Map<String, DoubleTimeSeries> timeSeriesById = new HashMap<>();
+    private final BiMap<String, DoubleTimeSeries> timeSeriesById = HashBiMap.create();
 
     DataExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
                   String senderId, StandardCodingSchemeType senderCodingScheme, StandardRoleType senderMarketRole,
@@ -85,7 +87,7 @@ public class DataExchanges {
         this.receiverMarketRole = Objects.requireNonNull(receiverMarketRole, "Receiver role is missing");
         this.creationDate = Objects.requireNonNull(creationDate, "Creation DateTime is missing");
         this.period = Objects.requireNonNull(period, "Time interval is missing");
-        this.timeSeriesById.putAll(timeSeriesById);
+        this.timeSeriesById.putAll(Objects.requireNonNull(timeSeriesById));
         // Optional data
         this.datasetMarketDocumentMRId = datasetMarketDocumentMRId;
         this.docStatus = docStatus;
@@ -173,8 +175,11 @@ public class DataExchanges {
     }
 
     public Stream<DoubleTimeSeries> getTimeSeriesStream(String inDomainId, String outDomainId) {
+        Objects.requireNonNull(inDomainId);
+        Objects.requireNonNull(outDomainId);
+
         return getTimeSeries().stream().filter(t -> {
-            java.util.Map<java.lang.String, java.lang.String> tags = t.getMetadata().getTags();
+            Map<String, String> tags = t.getMetadata().getTags();
             return inDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID)) &&
                     outDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID));
         });
@@ -182,6 +187,10 @@ public class DataExchanges {
 
     public List<DoubleTimeSeries> getTimeSeries(String inDomainId, String outDomainId) {
         return getTimeSeriesStream(inDomainId, outDomainId).collect(Collectors.toList());
+    }
+
+    public double getNetPosition(String inDomainId, String outDomainId, Instant instant) {
+        return getValueAt(inDomainId, outDomainId, instant).values().stream().reduce(0d, Double::sum) - getValueAt(outDomainId, inDomainId, instant).values().stream().reduce(0d, Double::sum);
     }
 
     public Map<String, Double> getValuesAt(Instant instant) {
@@ -204,6 +213,14 @@ public class DataExchanges {
 
         return timeSeriesIds.stream()
                 .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant)));
+    }
+
+    public Map<String, Double> getValueAt(String inDomainId, String outDomainId, Instant instant) {
+        Objects.requireNonNull(inDomainId);
+        Objects.requireNonNull(outDomainId);
+        Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
+
+        return getTimeSeriesStream(inDomainId, outDomainId).collect(Collectors.toMap(t -> timeSeriesById.inverse().get(t), t -> getValueAt(t, instant)));
     }
 
     public Map<String, Double> getValueAt(String[] timeSeriesIds, Instant instant) {
