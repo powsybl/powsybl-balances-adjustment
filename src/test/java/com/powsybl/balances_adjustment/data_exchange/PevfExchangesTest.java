@@ -123,6 +123,15 @@ public class PevfExchangesTest {
     }
 
     @Test
+    public void searchTimeSeriesByDomainIdTest() {
+        assertEquals(0, exchanges.getTimeSeries("Sender1", "Invalid").size());
+        assertEquals(0, exchanges.getTimeSeries("Invalid", "Receiver1").size());
+        assertEquals(1, exchanges.getTimeSeries("Sender1", "Receiver1").size());
+        assertThrows(NullPointerException.class, () -> exchanges.getTimeSeries(null, "Receiver1"));
+        assertThrows(NullPointerException.class, () -> exchanges.getTimeSeries("Sender1", null));
+    }
+
+    @Test
     public void timeSeriesNotFoundTest() {
         exception.expect(PowsyblException.class);
         exception.expectMessage("TimeSeries 'Unknown' not found");
