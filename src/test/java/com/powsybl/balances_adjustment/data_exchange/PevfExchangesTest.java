@@ -137,7 +137,7 @@ public class PevfExchangesTest {
         assertEquals(0.0, values.get("TimeSeries1"), 0.0);
 
         assertEquals(0.0, exchanges.getNetPosition("Sender1", "Receiver1", Instant.parse("2020-04-05T22:00:00.000Z")), 0.0);
-        assertEquals(0.0, exchanges.getNetPosition("Sender1", "Receiver1", Instant.parse("2020-04-05T23:00:00.000Z")), 0.0);
+        assertEquals(0.0, exchanges.getNetPosition("Sender1", "Receiver1", Instant.parse("2020-04-05T23:00:00.000Z"), false), 0.0);
     }
 
     @Test

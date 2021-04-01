@@ -190,8 +190,12 @@ public class DataExchanges {
     }
 
     public double getNetPosition(String inDomainId, String outDomainId, Instant instant) {
-        return getValuesAt(inDomainId, outDomainId, instant, false).values().stream().reduce(0d, Double::sum)
-                - getValuesAt(outDomainId, inDomainId, instant, false).values().stream().reduce(0d, Double::sum);
+        return getNetPosition(inDomainId, outDomainId, instant, true);
+    }
+
+    public double getNetPosition(String inDomainId, String outDomainId, Instant instant, boolean exceptionOutOfBound) {
+        return getValuesAt(inDomainId, outDomainId, instant, exceptionOutOfBound).values().stream().reduce(0d, Double::sum)
+                - getValuesAt(outDomainId, inDomainId, instant, exceptionOutOfBound).values().stream().reduce(0d, Double::sum);
     }
 
     public Map<String, Double> getValuesAt(Instant instant) {
