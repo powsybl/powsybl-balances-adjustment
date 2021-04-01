@@ -190,50 +190,70 @@ public class DataExchanges {
     }
 
     public double getNetPosition(String inDomainId, String outDomainId, Instant instant) {
-        return getValueAt(inDomainId, outDomainId, instant).values().stream().reduce(0d, Double::sum) - getValueAt(outDomainId, inDomainId, instant).values().stream().reduce(0d, Double::sum);
+        return getValuesAt(inDomainId, outDomainId, instant, false).values().stream().reduce(0d, Double::sum)
+                - getValuesAt(outDomainId, inDomainId, instant, false).values().stream().reduce(0d, Double::sum);
     }
 
     public Map<String, Double> getValuesAt(Instant instant) {
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         return timeSeriesById.keySet().stream()
-                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant)));
+                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant, true)));
     }
 
     public double getValueAt(String timeSeriesId, Instant instant) {
+        return getValueAt(timeSeriesId, instant, true);
+    }
+
+    public double getValueAt(String timeSeriesId, Instant instant, boolean exceptionOutOfBound) {
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         final DoubleTimeSeries timeSeries = getTimeSeries(timeSeriesId);
-        return getValueAt(timeSeries, instant);
+        return getValueAt(timeSeries, instant, exceptionOutOfBound);
     }
 
-    public Map<String, Double> getValueAt(List<String> timeSeriesIds, Instant instant) {
+    public Map<String, Double> getValuesAt(List<String> timeSeriesIds, Instant instant) {
         Objects.requireNonNull(timeSeriesIds, IDS_CANNOT_BE_NULL);
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         return timeSeriesIds.stream()
-                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant)));
+                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant, true)));
     }
 
-    public Map<String, Double> getValueAt(String inDomainId, String outDomainId, Instant instant) {
+    public Map<String, Double> getValuesAt(String inDomainId, String outDomainId, Instant instant) {
+        return getValuesAt(inDomainId, outDomainId, instant, true);
+    }
+
+    private Map<String, Double> getValuesAt(String inDomainId, String outDomainId, Instant instant, boolean exceptionOutOfBound) {
         Objects.requireNonNull(inDomainId);
         Objects.requireNonNull(outDomainId);
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
-        return getTimeSeriesStream(inDomainId, outDomainId).collect(Collectors.toMap(t -> timeSeriesById.inverse().get(t), t -> getValueAt(t, instant)));
+        return getTimeSeriesStream(inDomainId, outDomainId).collect(Collectors.toMap(t -> timeSeriesById.inverse().get(t), t -> getValueAt(t, instant, exceptionOutOfBound)));
     }
 
+    /**
+     * @deprecated Use {@link #getValuesAt(String[], Instant)} instead.
+     */
+    @Deprecated
     public Map<String, Double> getValueAt(String[] timeSeriesIds, Instant instant) {
-        return getValueAt(Arrays.asList(timeSeriesIds), instant);
+        return getValuesAt(timeSeriesIds, instant);
     }
 
-    private double getValueAt(DoubleTimeSeries timeSeries, Instant instant) {
+    public Map<String, Double> getValuesAt(String[] timeSeriesIds, Instant instant) {
+        return getValuesAt(Arrays.asList(timeSeriesIds), instant);
+    }
+
+    private double getValueAt(DoubleTimeSeries timeSeries, Instant instant, boolean exceptionOutOfBound) {
         RegularTimeSeriesIndex index = (RegularTimeSeriesIndex) timeSeries.getMetadata().getIndex();
         Instant start = Instant.ofEpochMilli(index.getStartTime());
         Instant end = Instant.ofEpochMilli(index.getEndTime());
 
         if (instant.isBefore(start) || instant.isAfter(end) || instant.equals(end)) {
-            throw new PowsyblException(String.format("%s '%s' is out of bound [%s, %s[", timeSeries.getMetadata().getName(), instant, start, end));
+            if (exceptionOutOfBound) {
+                throw new PowsyblException(String.format("%s '%s' is out of bound [%s, %s[", timeSeries.getMetadata().getName(), instant, start, end));
+            }
+            return 0;
         } else {
             long spacing = index.getSpacing();
             Duration elapsed = Duration.between(start, instant);
