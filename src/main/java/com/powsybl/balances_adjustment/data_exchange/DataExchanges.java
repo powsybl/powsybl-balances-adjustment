@@ -6,6 +6,8 @@
  */
 package com.powsybl.balances_adjustment.data_exchange;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.timeseries.*;
 import org.joda.time.DateTime;
@@ -15,6 +17,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *  Pan European Verification Function (PEVF) &
@@ -65,7 +68,7 @@ public class DataExchanges {
     private final StandardCodingSchemeType domainCodingScheme;
 
     // Time Series
-    private final Map<String, DoubleTimeSeries> timeSeriesById = new HashMap<>();
+    private final BiMap<String, DoubleTimeSeries> timeSeriesById = HashBiMap.create();
 
     DataExchanges(String mRID, int revisionNumber, StandardMessageType type, StandardProcessType processType,
                   String senderId, StandardCodingSchemeType senderCodingScheme, StandardRoleType senderMarketRole,
@@ -84,7 +87,7 @@ public class DataExchanges {
         this.receiverMarketRole = Objects.requireNonNull(receiverMarketRole, "Receiver role is missing");
         this.creationDate = Objects.requireNonNull(creationDate, "Creation DateTime is missing");
         this.period = Objects.requireNonNull(period, "Time interval is missing");
-        this.timeSeriesById.putAll(timeSeriesById);
+        this.timeSeriesById.putAll(Objects.requireNonNull(timeSeriesById));
         // Optional data
         this.datasetMarketDocumentMRId = datasetMarketDocumentMRId;
         this.docStatus = docStatus;
@@ -171,39 +174,90 @@ public class DataExchanges {
         return timeSeriesById.get(timeSeriesId);
     }
 
+    public Stream<DoubleTimeSeries> getTimeSeriesStream(String inDomainId, String outDomainId) {
+        Objects.requireNonNull(inDomainId);
+        Objects.requireNonNull(outDomainId);
+
+        return getTimeSeries().stream().filter(t -> {
+            Map<String, String> tags = t.getMetadata().getTags();
+            return inDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID)) &&
+                    outDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID));
+        });
+    }
+
+    public List<DoubleTimeSeries> getTimeSeries(String inDomainId, String outDomainId) {
+        return getTimeSeriesStream(inDomainId, outDomainId).collect(Collectors.toList());
+    }
+
+    public double getNetPosition(String inDomainId, String outDomainId, Instant instant) {
+        return getNetPosition(inDomainId, outDomainId, instant, true);
+    }
+
+    public double getNetPosition(String inDomainId, String outDomainId, Instant instant, boolean exceptionOutOfBound) {
+        return getValuesAt(inDomainId, outDomainId, instant, exceptionOutOfBound).values().stream().reduce(0d, Double::sum)
+                - getValuesAt(outDomainId, inDomainId, instant, exceptionOutOfBound).values().stream().reduce(0d, Double::sum);
+    }
+
     public Map<String, Double> getValuesAt(Instant instant) {
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         return timeSeriesById.keySet().stream()
-                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant)));
+                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant, true)));
     }
 
     public double getValueAt(String timeSeriesId, Instant instant) {
+        return getValueAt(timeSeriesId, instant, true);
+    }
+
+    public double getValueAt(String timeSeriesId, Instant instant, boolean exceptionOutOfBound) {
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         final DoubleTimeSeries timeSeries = getTimeSeries(timeSeriesId);
-        return getValueAt(timeSeries, instant);
+        return getValueAt(timeSeries, instant, exceptionOutOfBound);
     }
 
-    public Map<String, Double> getValueAt(List<String> timeSeriesIds, Instant instant) {
+    public Map<String, Double> getValuesAt(List<String> timeSeriesIds, Instant instant) {
         Objects.requireNonNull(timeSeriesIds, IDS_CANNOT_BE_NULL);
         Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
 
         return timeSeriesIds.stream()
-                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant)));
+                .collect(Collectors.toMap(id -> id, id -> getValueAt(getTimeSeries(id), instant, true)));
     }
 
+    public Map<String, Double> getValuesAt(String inDomainId, String outDomainId, Instant instant) {
+        return getValuesAt(inDomainId, outDomainId, instant, true);
+    }
+
+    private Map<String, Double> getValuesAt(String inDomainId, String outDomainId, Instant instant, boolean exceptionOutOfBound) {
+        Objects.requireNonNull(inDomainId);
+        Objects.requireNonNull(outDomainId);
+        Objects.requireNonNull(instant, INSTANT_CANNOT_BE_NULL);
+
+        return getTimeSeriesStream(inDomainId, outDomainId).collect(Collectors.toMap(t -> timeSeriesById.inverse().get(t), t -> getValueAt(t, instant, exceptionOutOfBound)));
+    }
+
+    /**
+     * @deprecated Use {@link #getValuesAt(String[], Instant)} instead.
+     */
+    @Deprecated
     public Map<String, Double> getValueAt(String[] timeSeriesIds, Instant instant) {
-        return getValueAt(Arrays.asList(timeSeriesIds), instant);
+        return getValuesAt(timeSeriesIds, instant);
     }
 
-    private double getValueAt(DoubleTimeSeries timeSeries, Instant instant) {
+    public Map<String, Double> getValuesAt(String[] timeSeriesIds, Instant instant) {
+        return getValuesAt(Arrays.asList(timeSeriesIds), instant);
+    }
+
+    private double getValueAt(DoubleTimeSeries timeSeries, Instant instant, boolean exceptionOutOfBound) {
         RegularTimeSeriesIndex index = (RegularTimeSeriesIndex) timeSeries.getMetadata().getIndex();
         Instant start = Instant.ofEpochMilli(index.getStartTime());
         Instant end = Instant.ofEpochMilli(index.getEndTime());
 
         if (instant.isBefore(start) || instant.isAfter(end) || instant.equals(end)) {
-            throw new PowsyblException(String.format("%s '%s' is out of bound [%s, %s[", timeSeries.getMetadata().getName(), instant, start, end));
+            if (exceptionOutOfBound) {
+                throw new PowsyblException(String.format("%s '%s' is out of bound [%s, %s[", timeSeries.getMetadata().getName(), instant, start, end));
+            }
+            return 0;
         } else {
             long spacing = index.getSpacing();
             Duration elapsed = Duration.between(start, instant);

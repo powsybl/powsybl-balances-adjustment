@@ -123,6 +123,24 @@ public class PevfExchangesTest {
     }
 
     @Test
+    public void searchTimeSeriesByDomainIdTest() {
+        assertEquals(0, exchanges.getTimeSeries("Sender1", "Invalid").size());
+        assertEquals(0, exchanges.getTimeSeries("Invalid", "Receiver1").size());
+        assertEquals(1, exchanges.getTimeSeries("Sender1", "Receiver1").size());
+        assertThrows(NullPointerException.class, () -> exchanges.getTimeSeries(null, "Receiver1"));
+        assertThrows(NullPointerException.class, () -> exchanges.getTimeSeries("Sender1", null));
+
+        assertTrue(exchanges.getValuesAt("Sender1", "Invalid", Instant.parse("2020-04-05T22:00:00.000Z")).isEmpty());
+        Map<String, Double> values = exchanges.getValuesAt("Sender1", "Receiver1", Instant.parse("2020-04-05T22:00:00.000Z"));
+        assertEquals(1, values.size());
+        assertTrue(values.containsKey("TimeSeries1"));
+        assertEquals(0.0, values.get("TimeSeries1"), 0.0);
+
+        assertEquals(0.0, exchanges.getNetPosition("Sender1", "Receiver1", Instant.parse("2020-04-05T22:00:00.000Z")), 0.0);
+        assertEquals(0.0, exchanges.getNetPosition("Sender1", "Receiver1", Instant.parse("2020-04-05T23:00:00.000Z"), false), 0.0);
+    }
+
+    @Test
     public void timeSeriesNotFoundTest() {
         exception.expect(PowsyblException.class);
         exception.expectMessage("TimeSeries 'Unknown' not found");
