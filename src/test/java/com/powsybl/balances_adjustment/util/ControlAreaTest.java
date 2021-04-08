@@ -6,7 +6,6 @@
  */
 package com.powsybl.balances_adjustment.util;
 
-import com.powsybl.action.util.Scalable;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Network;
 import org.junit.Test;
