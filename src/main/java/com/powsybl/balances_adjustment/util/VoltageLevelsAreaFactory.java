@@ -10,7 +10,6 @@ import com.powsybl.iidm.network.Network;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A {@link NetworkAreaFactory} instance that creates new {@link VoltageLevelsArea}.
@@ -27,7 +26,7 @@ public class VoltageLevelsAreaFactory implements NetworkAreaFactory {
     }
 
     public VoltageLevelsAreaFactory(List<String> excludedXnodes, String... voltageLevelIds) {
-        this.excludedXnodes = Objects.requireNonNull(excludedXnodes);
+        this.excludedXnodes = excludedXnodes;
         this.voltageLevelIds = Arrays.asList(voltageLevelIds);
     }
 
