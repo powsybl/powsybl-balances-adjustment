@@ -11,6 +11,7 @@ import com.powsybl.cgmes.extensions.CgmesControlArea;
 import com.powsybl.cgmes.extensions.CgmesControlAreas;
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.*;
+import com.powsybl.iidm.network.extensions.LoadDetail;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -79,14 +80,28 @@ public final class NetworkAreaUtil {
         return networkAreaFactories;
     }
 
-    public static List<Scalable> createLoadScalables(NetworkArea area) {
-        return area.getContainedBusViewBuses().stream()
+    public static Scalable createConformLoadScalable(NetworkArea area) {
+        List<Load> loads = area.getContainedBusViewBuses().stream()
                 .flatMap(Bus::getConnectedTerminalStream)
-                .filter(t -> t.getConnectable() instanceof Load) // TODO: should also filter if they are conform loads or not (non conform loads and equivalent injections)
+                .filter(t -> t.getConnectable() instanceof Load)
                 .map(t -> (Load) t.getConnectable())
                 .filter(load -> load.getP0() >= 0)
-                .map(load -> (Scalable) Scalable.onLoad(load.getId()))
-                .collect(Collectors.toList());
+                .filter(load -> load.getTerminal().getBusView().getBus().isInMainConnectedComponent())
+                .filter(load -> load.getExtension(LoadDetail.class) != null && load.getExtension(LoadDetail.class).getFixedActivePower() == 0 && load.getExtension(LoadDetail.class).getFixedReactivePower() == 0)
+                .sorted((l1, l2) -> {
+                    if (l1.getP0() == l2.getP0()) {
+                        return 0;
+                    } else if (l1.getP0() > l2.getP0()) {
+                        return -1;
+                    }
+                    return 1;
+                }).collect(Collectors.toList());
+        if (loads.isEmpty()) {
+            return null;
+        }
+        float totalP0 = (float) loads.stream().mapToDouble(Load::getP0).sum();
+        List<Float> percentages = loads.stream().map(load -> (float) (100f * load.getP0() / totalP0)).collect(Collectors.toList());
+        return Scalable.proportional(percentages, loads.stream().map(inj -> (Scalable) Scalable.onLoad(inj.getId())).collect(Collectors.toList()));
     }
 
     private NetworkAreaUtil() {

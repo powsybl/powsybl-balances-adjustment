@@ -48,6 +48,37 @@ public class VoltageLevelsArea implements NetworkArea {
                 .collect(Collectors.toSet());
     }
 
+    public VoltageLevelsArea(Network network, List<String> excludedXnodes, List<String> voltageLevelIds) {
+        this.voltageLevelIds.addAll(voltageLevelIds);
+
+        danglingLineBordersCache = network.getDanglingLineStream()
+                .filter(this::isAreaBorder)
+                .filter(dl -> !dl.hasProperty("CGMES.isHvdc"))
+                .filter(dl -> excludedXnodes.stream().noneMatch(xnodeCode -> dl.getUcteXnodeCode().equals(xnodeCode)))
+                .collect(Collectors.toList());
+        branchBordersCache = network.getLineStream()
+                .filter(this::isAreaBorder)
+                .filter(b -> !b.hasProperty("CGMES.isHvdc"))
+                .filter(b -> {
+                    if (b instanceof TieLine) {
+                        TieLine tl = (TieLine) b;
+                        return excludedXnodes.stream().noneMatch(xnodeCode -> tl.getUcteXnodeCode().equals(xnodeCode));
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+        threeWindingsTransformerBordersCache = network.getThreeWindingsTransformerStream()
+                .filter(this::isAreaBorder)
+                .collect(Collectors.toList());
+        hvdcLineBordersCache = network.getHvdcLineStream()
+                .filter(this::isAreaBorder)
+                .collect(Collectors.toList());
+
+        busesCache = network.getBusView().getBusStream()
+                .filter(bus -> voltageLevelIds.contains(bus.getVoltageLevel().getId()))
+                .collect(Collectors.toSet());
+    }
+
     @Override
     public double getNetPosition() {
         return danglingLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()

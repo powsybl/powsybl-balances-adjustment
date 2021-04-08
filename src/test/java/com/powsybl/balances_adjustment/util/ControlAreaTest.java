@@ -37,17 +37,11 @@ public class ControlAreaTest {
         assertEquals(-212.0966807507164d, networkArea1.getNetPosition(), 0.00000001d);
         assertEquals(5, networkArea1.getContainedBusViewBuses().size());
 
-        List<Scalable> scalables1 = NetworkAreaUtil.createLoadScalables(networkArea1);
-        assertEquals(3, scalables1.size());
-
         NetworkArea networkArea2 = controlAreaFactories.get(0).create(network);
         assertTrue(networkArea2 instanceof ControlArea);
         assertEquals(networkArea1.getNetPosition(), networkArea2.getNetPosition(), 0.0);
         assertTrue(networkArea1.getContainedBusViewBuses().containsAll(networkArea2.getContainedBusViewBuses()));
         assertTrue(networkArea2.getContainedBusViewBuses().containsAll(networkArea1.getContainedBusViewBuses()));
-
-        List<Scalable> scalables2 = NetworkAreaUtil.createLoadScalables(networkArea2);
-        assertEquals(3, scalables2.size());
     }
 
     @Test
