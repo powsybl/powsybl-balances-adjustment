@@ -80,7 +80,8 @@ public final class NetworkAreaUtil {
         return networkAreaFactories;
     }
 
-    public static Scalable createConformLoadScalable(NetworkArea area) {
+    public static Scalable createConformLoadAndDanglingLineScalable(NetworkArea area, boolean scaleDanglingLines) {
+        // On loads
         List<Load> loads = area.getContainedBusViewBuses().stream()
                 .flatMap(Bus::getConnectedTerminalStream)
                 .filter(t -> t.getConnectable() instanceof Load)
@@ -99,12 +100,32 @@ public final class NetworkAreaUtil {
                 throw new PowsyblException("There is no load in this network");
             }
         }
-        float totalP0 = (float) loads.stream().mapToDouble(Load::getP0).sum();
-        if (totalP0 == 0.0) {
+        float ldsTotalP0 = (float) loads.stream().mapToDouble(Load::getP0).sum();
+        if (ldsTotalP0 == 0.0) {
             throw new PowsyblException("The sum of all loads' active power flows is null"); // ????
         }
-        List<Float> percentages = loads.stream().map(load -> (float) (100f * load.getP0() / totalP0)).collect(Collectors.toList());
-        return Scalable.proportional(percentages, loads.stream().map(inj -> (Scalable) Scalable.onLoad(inj.getId())).collect(Collectors.toList()));
+        // On dangling lines of the merging view
+        float dlsTotalP0 = 0;
+        List<DanglingLine> dls = Collections.emptyList();
+        if (scaleDanglingLines) {
+            dls = area.getContainedBusViewBuses().stream()
+                    .flatMap(Bus::getConnectedTerminalStream)
+                    .filter(t -> t.getConnectable() instanceof DanglingLine)
+                    .map(t -> (DanglingLine) t.getConnectable())
+                    .collect(Collectors.toList());
+            dlsTotalP0 = (float) dls.stream().mapToDouble(dl -> Math.abs(dl.getP0())).sum();
+        }
+        // Scalables building
+        float totalP0 = dlsTotalP0 + ldsTotalP0;
+        List<Float> ldsPercentages = loads.stream().map(load -> (float) (100f * load.getP0() / totalP0)).collect(Collectors.toList());
+        List<Float> dlsPercentages = dls.stream().map(danglingLine -> (float) (100f * Math.abs(danglingLine.getP0()) / totalP0)).collect(Collectors.toList());
+        List<Float> percentages = ldsPercentages;
+        percentages.addAll(dlsPercentages);
+        List<Scalable> ldsScalables = loads.stream().map(inj -> (Scalable) Scalable.onLoad(inj.getId())).collect(Collectors.toList());
+        List<Scalable> dlsScalables = dls.stream().map(inj -> (Scalable) Scalable.onDanglingLine(inj.getId())).collect(Collectors.toList());
+        List<Scalable> scalables = ldsScalables;
+        scalables.addAll(dlsScalables);
+        return Scalable.proportional(percentages, scalables);
     }
 
     private NetworkAreaUtil() {
