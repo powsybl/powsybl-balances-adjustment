@@ -13,6 +13,7 @@ import com.powsybl.timeseries.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+//import java.lang.reflect.Array;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -174,6 +175,16 @@ public class DataExchanges {
         return timeSeriesById.get(timeSeriesId);
     }
 
+    public List<DoubleTimeSeries> getTimeSeriesWithId(String eicCode) {
+        Objects.requireNonNull(eicCode);
+
+        return getTimeSeries().stream().filter(t -> {
+            Map<String, String> tags = t.getMetadata().getTags();
+            return eicCode.equalsIgnoreCase(tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID)) ||
+                    eicCode.equalsIgnoreCase(tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID));
+        }).collect(Collectors.toList());
+    }
+
     public Stream<DoubleTimeSeries> getTimeSeriesStream(String inDomainId, String outDomainId) {
         Objects.requireNonNull(inDomainId);
         Objects.requireNonNull(outDomainId);
@@ -183,6 +194,25 @@ public class DataExchanges {
             return inDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID)) &&
                     outDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID));
         });
+    }
+
+    public List<String> getCountriesId(String eicCode, Instant instant) {
+        ArrayList<String> eicCountries = new ArrayList<>();
+        List<DoubleTimeSeries> ts = getTimeSeriesWithId(eicCode);
+
+        for (DoubleTimeSeries doubleTimeSeries : ts) {
+            Map<String, String> tags = doubleTimeSeries.getMetadata().getTags();
+            String inDomainId = tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID);
+            String outDomainId = tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID);
+            if (getNetPosition(inDomainId, outDomainId, instant) != 0) {
+                if (inDomainId.equalsIgnoreCase(eicCode) && !eicCountries.contains(outDomainId)) {
+                    eicCountries.add(outDomainId);
+                } else if (outDomainId.equalsIgnoreCase(eicCode) && !eicCountries.contains(inDomainId)) {
+                    eicCountries.add(inDomainId);
+                }
+            }
+        }
+        return eicCountries;
     }
 
     public List<DoubleTimeSeries> getTimeSeries(String inDomainId, String outDomainId) {
