@@ -80,7 +80,7 @@ public final class NetworkAreaUtil {
         return networkAreaFactories;
     }
 
-    public static Scalable createConformLoadAndDanglingLineScalable(NetworkArea area, boolean scaleDanglingLines) {
+    public static Scalable createConformLoadAndDanglingLineScalable(NetworkArea area, boolean scaleDanglingLines, CgmesControlArea area2) {
         // On loads
         List<Load> loads = area.getContainedBusViewBuses().stream()
                 .flatMap(Bus::getConnectedTerminalStream)
@@ -112,6 +112,13 @@ public final class NetworkAreaUtil {
                     .flatMap(Bus::getConnectedTerminalStream)
                     .filter(t -> t.getConnectable() instanceof DanglingLine)
                     .map(t -> (DanglingLine) t.getConnectable())
+                    .filter(dl -> !dl.hasProperty("CGMES.isHvdc"))
+                    .filter(dl -> {
+                        if (area2 != null && (!area2.getTerminals().isEmpty() || !area2.getBoundaries().isEmpty())) {
+                            return area2.getTerminals().stream().anyMatch(t -> t.getConnectable().getId().equals(dl.getId())) || area2.getBoundaries().stream().anyMatch(bd -> bd.getConnectable().getId().equals(dl.getId()));
+                        }
+                        return true;
+                    })
                     .collect(Collectors.toList());
             dlsTotalP0 = (float) dls.stream().mapToDouble(dl -> Math.abs(dl.getP0())).sum();
         }
