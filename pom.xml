@@ -47,8 +47,8 @@
         <mockito.version>1.10.19</mockito.version>
         <slf4j.version>1.7.22</slf4j.version>
 
-        <powsybl.core.version>4.2.0-SNAPSHOT</powsybl.core.version>
-        <powsybl.open-loadflow.version>0.11.0-SNAPSHOT</powsybl.open-loadflow.version>
+        <powsybl.core.version>4.1.1</powsybl.core.version>
+        <powsybl.open-loadflow.version>0.9.0</powsybl.open-loadflow.version>
 
     </properties>
 
