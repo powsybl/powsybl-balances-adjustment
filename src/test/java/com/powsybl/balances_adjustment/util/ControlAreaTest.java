@@ -6,15 +6,16 @@
  */
 package com.powsybl.balances_adjustment.util;
 
+import com.powsybl.cgmes.extensions.CgmesControlAreas;
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Network;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Marcos de Miguel <demiguelm at aia.es>
@@ -52,5 +53,44 @@ public class ControlAreaTest {
         List<NetworkAreaFactory> controlAreaFactories = NetworkAreaUtil.createNetworkAreaFactoryBySynchronousComponent(network, "FAULTY");
         assertEquals(2, controlAreaFactories.size());
 
+    }
+
+    @Test
+    public void testNullControlArea() {
+        try {
+            new ControlAreaFactory(null, null);
+            fail();
+        } catch (PowsyblException e) {
+            assertEquals("Undefined tie flows for control area", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testEmptySetControlArea() {
+        Network network = Importers.loadNetwork("controlArea.xiidm", getClass().getResourceAsStream("/controlArea.xiidm"));
+        NetworkAreaFactory factory = new ControlAreaFactory(Collections.emptySet(), Collections.emptySet());
+        try {
+            factory.create(network);
+            fail();
+        } catch (PowsyblException e) {
+            assertEquals("Control area should have a defined controlAreaId or defined sets of tieFlows", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testEmptyControlArea() {
+        Network network = Importers.loadNetwork("controlArea.xiidm", getClass().getResourceAsStream("/controlArea.xiidm"));
+        network.getExtension(CgmesControlAreas.class).newCgmesControlArea()
+                .setId("EMPTY")
+                .setName("EMPTY")
+                .setEnergyIdentificationCodeEic("EMPTY")
+                .add();
+        NetworkAreaFactory factory = new ControlAreaFactory("EMPTY");
+        try {
+            factory.create(network);
+            fail();
+        } catch (PowsyblException e) {
+            assertEquals("Undefined tie flows for control area EMPTY", e.getMessage());
+        }
     }
 }
