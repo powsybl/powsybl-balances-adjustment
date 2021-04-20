@@ -18,24 +18,14 @@ import java.util.List;
  */
 public class VoltageLevelsAreaFactory implements NetworkAreaFactory {
 
-    private final List<String> excludedXnodes;
     private final List<String> voltageLevelIds;
 
     public VoltageLevelsAreaFactory(String... voltageLevelIds) {
-        this(null, voltageLevelIds);
-    }
-
-    public VoltageLevelsAreaFactory(List<String> excludedXnodes, String... voltageLevelIds) {
-        this.excludedXnodes = excludedXnodes;
         this.voltageLevelIds = Arrays.asList(voltageLevelIds);
     }
 
     @Override
     public VoltageLevelsArea create(Network network) {
-        if (excludedXnodes == null) {
-            return new VoltageLevelsArea(network, voltageLevelIds);
-        } else {
-            return new VoltageLevelsArea(network, excludedXnodes, voltageLevelIds);
-        }
+        return new VoltageLevelsArea(network, voltageLevelIds);
     }
 }
