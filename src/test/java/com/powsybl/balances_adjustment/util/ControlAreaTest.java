@@ -48,11 +48,19 @@ public class ControlAreaTest {
     public void testFaultyControlArea() {
         Network network = Importers.loadNetwork("controlArea.xiidm", getClass().getResourceAsStream("/controlArea.xiidm"));
 
+        NetworkAreaFactory factory = new ControlAreaFactory("FAULTY");
+        try {
+            factory.create(network);
+            fail();
+        } catch (PowsyblException e) {
+            assertEquals("Control area contains more than one synchronous component. " +
+                    "You should use utility methods in NetworkAreaUtil to create proper control areas", e.getMessage());
+        }
+
         assertTrue(NetworkAreaUtil.containsSeveralSynchronousComponent(network, "FAULTY"));
 
         List<NetworkAreaFactory> controlAreaFactories = NetworkAreaUtil.createNetworkAreaFactoryBySynchronousComponent(network, "FAULTY");
         assertEquals(2, controlAreaFactories.size());
-
     }
 
     @Test
