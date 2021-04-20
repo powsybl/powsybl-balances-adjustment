@@ -15,7 +15,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 
@@ -77,22 +79,22 @@ public class PevfExchangesTest {
         assertEquals("A03", timeSeries1.getMetadata().getTags().get("curveType"));
         // TimeSeries1 : values
         // Single step, single value
-        assertArrayEquals(new double[] {0.000d, Double.NaN}, timeSeries1.toArray(), 0.0d);
+        assertArrayEquals(new double[]{0.000d, Double.NaN}, timeSeries1.toArray(), 0.0d);
 
         // TimeSeries2
         // Multi steps, single value
         DoubleTimeSeries timeSeries2 = exchanges.getTimeSeries("TimeSeries2");
-        assertArrayEquals(new double[] {0.020d, 0.020d, Double.NaN}, timeSeries2.toArray(), 0.0d);
+        assertArrayEquals(new double[]{0.020d, 0.020d, Double.NaN}, timeSeries2.toArray(), 0.0d);
 
         // TimeSeries3
         // Each value defined
         DoubleTimeSeries timeSeries3 = exchanges.getTimeSeries("TimeSeries3");
-        assertArrayEquals(new double[] {0.000d, 0.250d, 0.500d, 0.750d, Double.NaN}, timeSeries3.toArray(), 0.0d);
+        assertArrayEquals(new double[]{0.000d, 0.250d, 0.500d, 0.750d, Double.NaN}, timeSeries3.toArray(), 0.0d);
 
         // TimeSeries4
         // Each value not defined
         DoubleTimeSeries timeSeries4 = exchanges.getTimeSeries("TimeSeries4");
-        double[] timeSeries4ExpectedValues = new double[] {3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3926.042, 3926.042, 3926.042, 3926.042, 3926.042, 3924.460, 3924.460, 3924.460, 3924.460, Double.NaN};
+        double[] timeSeries4ExpectedValues = new double[]{3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3939.124, 3926.042, 3926.042, 3926.042, 3926.042, 3926.042, 3924.460, 3924.460, 3924.460, 3924.460, Double.NaN};
         assertArrayEquals(timeSeries4ExpectedValues, timeSeries4.toArray(), 0.0d);
     }
 
@@ -116,7 +118,7 @@ public class PevfExchangesTest {
         assertEquals(15, exchanges.getValueAt("TimeSeries5", Instant.parse("2020-04-06T01:00:00.000Z")), 0.0);
         assertEquals(15, exchanges.getValueAt("TimeSeries5", Instant.parse("2020-04-06T01:30:00.000Z")), 0.0);
 
-        timeSeriesById = exchanges.getValueAt(new String[] {"TimeSeries1", "TimeSeries5"}, Instant.parse("2020-04-05T22:00:00.000Z"));
+        timeSeriesById = exchanges.getValueAt(new String[]{"TimeSeries1", "TimeSeries5"}, Instant.parse("2020-04-05T22:00:00.000Z"));
         assertEquals(2, timeSeriesById.keySet().size());
         assertEquals(0.0d, timeSeriesById.get("TimeSeries1"), 0.0d);
         assertEquals(35.0d, timeSeriesById.get("TimeSeries5"), 0.0d);
@@ -141,6 +143,9 @@ public class PevfExchangesTest {
 
         assertEquals(0.0, exchanges.getNetPositionsWithInDomainId("Sender1", Instant.parse("2020-04-05T22:00:00.000Z")).get("Receiver1"), 0.0);
         assertEquals(0.0, exchanges.getNetPositionsWithInDomainId("Sender1", Instant.parse("2020-04-05T23:00:00.000Z"), false).get("Receiver1"), 0.0);
+
+        assertEquals(0.0, exchanges.getNetPositionsWithInDomainId("Receiver1", Instant.parse("2020-04-05T22:00:00.000Z")).get("Sender1"), 0.0);
+        assertEquals(0.0, exchanges.getNetPositionsWithInDomainId("Receiver1", Instant.parse("2020-04-05T23:00:00.000Z"), false).get("Sender1"), 0.0);
     }
 
     @Test
@@ -170,9 +175,9 @@ public class PevfExchangesTest {
         exception.expectMessage("Bad revision number value -1");
 
         new DataExchanges("", -1, StandardMessageType.B19, StandardProcessType.A01,
-                 "", StandardCodingSchemeType.A01, StandardRoleType.A32,
+                "", StandardCodingSchemeType.A01, StandardRoleType.A32,
                 "", StandardCodingSchemeType.A02, StandardRoleType.A33,
-                          DateTime.now(), null, "", StandardStatusType.A01, null,
+                DateTime.now(), null, "", StandardStatusType.A01, null,
                 null, null);
     }
 
