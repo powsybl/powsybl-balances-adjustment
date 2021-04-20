@@ -96,12 +96,12 @@ public final class NetworkAreaUtil {
                     .filter(load -> load.getP0() >= 0)
                     .collect(Collectors.toList());
             if (loads.isEmpty()) {
-                throw new PowsyblException("There is no load in this network");
+                throw new PowsyblException("There is no load in this area");
             }
         }
         float totalP0 = (float) loads.stream().mapToDouble(Load::getP0).sum();
         if (totalP0 == 0.0) {
-            throw new PowsyblException("The sum of all loads' active power flows is null"); // ????
+            throw new PowsyblException("All loads' active power flows is null"); // this case should never happen
         }
         List<Float> percentages = loads.stream().map(load -> (float) (100f * load.getP0() / totalP0)).collect(Collectors.toList());
         return Scalable.proportional(percentages, loads.stream().map(inj -> (Scalable) Scalable.onLoad(inj.getId())).collect(Collectors.toList()));
