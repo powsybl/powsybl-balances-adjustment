@@ -22,6 +22,9 @@ import java.util.stream.Stream;
  */
 public final class NetworkAreaUtil {
 
+    /**
+     * Checks if a CGMES control area with the given ID contains several synchronous components.
+     */
     public static boolean containsSeveralSynchronousComponent(Network network, String controlAreaId) {
         CgmesControlArea controlArea = network.getExtension(CgmesControlAreas.class).getCgmesControlArea(controlAreaId);
         int cc = -1;
@@ -61,6 +64,9 @@ public final class NetworkAreaUtil {
         throw new PowsyblException("Unexpected type of " + b.getConnectable());
     }
 
+    /**
+     * For each synchronous component of a CGMES control area with the given ID, a network area is created.
+     */
     public static List<NetworkAreaFactory> createNetworkAreaFactoryBySynchronousComponent(Network network, String controlAreaId) {
         Map<Integer, Set<Terminal>> terminalsBySynchronousComponent = new HashMap<>();
         Map<Integer, Set<Boundary>> boundariesBySynchronousComponent = new HashMap<>();
@@ -80,6 +86,12 @@ public final class NetworkAreaUtil {
         return networkAreaFactories;
     }
 
+    /**
+     * Create a ProportionalScalable containing all the conform loads contained in a given network area with an associated percentage proportional to their p0.
+     * If no conform load is contained in the given network area, the ProportionalScalable contains all the loads contained in the given network area.
+     * If no load is contained in the given network area, an exception is thrown.
+     * If all selected load (conform or not) have a null p0, an exception is thrown.
+     */
     public static Scalable createConformLoadScalable(NetworkArea area) {
         List<Load> loads = area.getContainedBusViewBuses().stream()
                 .flatMap(Bus::getConnectedTerminalStream)
