@@ -49,7 +49,7 @@ public class NetworkAreaUtilTest {
             assertEquals("There is no load in this area", e.getMessage());
         }
     }
-    
+
     @Test
     public void testNullLoadScalables() {
         Network network = EurostagTutorialExample1Factory.create();
