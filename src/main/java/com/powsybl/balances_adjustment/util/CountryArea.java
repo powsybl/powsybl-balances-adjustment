@@ -8,8 +8,7 @@ package com.powsybl.balances_adjustment.util;
 
 import com.powsybl.iidm.network.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -25,6 +24,8 @@ public class CountryArea implements NetworkArea {
     private final List<Line> lineBordersCache;
     private final List<HvdcLine> hvdcLineBordersCache;
 
+    private final Set<Bus> busesCache;
+
     public CountryArea(Network network, List<Country> countries) {
         this.countries.addAll(countries);
 
@@ -37,6 +38,10 @@ public class CountryArea implements NetworkArea {
         hvdcLineBordersCache = network.getHvdcLineStream()
                 .filter(this::isAreaBorder)
                 .collect(Collectors.toList());
+
+        busesCache = network.getBusView().getBusStream()
+                .filter(bus -> bus.getVoltageLevel().getSubstation().getCountry().map(countries::contains).orElse(false))
+                .collect(Collectors.toSet());
     }
 
     public List<Country> getCountries() {
@@ -48,6 +53,11 @@ public class CountryArea implements NetworkArea {
         return danglingLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
                 + lineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
                 + hvdcLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum();
+    }
+
+    @Override
+    public Collection<Bus> getContainedBusViewBuses() {
+        return Collections.unmodifiableCollection(busesCache);
     }
 
     private boolean isAreaBorder(DanglingLine danglingLine) {

@@ -8,8 +8,7 @@ package com.powsybl.balances_adjustment.util;
 
 import com.powsybl.iidm.network.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +25,8 @@ public class VoltageLevelsArea implements NetworkArea {
     private final List<ThreeWindingsTransformer> threeWindingsTransformerBordersCache;
     private final List<HvdcLine> hvdcLineBordersCache;
 
+    private final Set<Bus> busesCache;
+
     public VoltageLevelsArea(Network network, List<String> voltageLevelIds) {
         this.voltageLevelIds.addAll(voltageLevelIds);
 
@@ -41,6 +42,10 @@ public class VoltageLevelsArea implements NetworkArea {
         hvdcLineBordersCache = network.getHvdcLineStream()
                 .filter(this::isAreaBorder)
                 .collect(Collectors.toList());
+
+        busesCache = network.getBusView().getBusStream()
+                .filter(bus -> voltageLevelIds.contains(bus.getVoltageLevel().getId()))
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -49,6 +54,11 @@ public class VoltageLevelsArea implements NetworkArea {
                 + branchBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
                 + threeWindingsTransformerBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum()
                 + hvdcLineBordersCache.parallelStream().mapToDouble(this::getLeavingFlow).sum();
+    }
+
+    @Override
+    public Collection<Bus> getContainedBusViewBuses() {
+        return Collections.unmodifiableCollection(busesCache);
     }
 
     private boolean isAreaBorder(DanglingLine danglingLine) {

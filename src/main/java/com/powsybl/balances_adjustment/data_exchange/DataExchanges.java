@@ -16,6 +16,7 @@ import org.joda.time.Interval;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -174,6 +175,16 @@ public class DataExchanges {
         return timeSeriesById.get(timeSeriesId);
     }
 
+    public Stream<DoubleTimeSeries> getTimeSeriesWithDomainId(String inOutDomainId) {
+        Objects.requireNonNull(inOutDomainId);
+
+        return getTimeSeries().stream().filter(t -> {
+            Map<String, String> tags = t.getMetadata().getTags();
+            return inOutDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID)) ||
+                    inOutDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID));
+        });
+    }
+
     public Stream<DoubleTimeSeries> getTimeSeriesStream(String inDomainId, String outDomainId) {
         Objects.requireNonNull(inDomainId);
         Objects.requireNonNull(outDomainId);
@@ -183,6 +194,27 @@ public class DataExchanges {
             return inDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID)) &&
                     outDomainId.equalsIgnoreCase(tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID));
         });
+    }
+
+    public Map<String, Double> getNetPositionsWithInDomainId(String inDomainId, Instant instant) {
+        return getNetPositionsWithInDomainId(inDomainId, instant, true);
+    }
+
+    public Map<String, Double> getNetPositionsWithInDomainId(String inDomainId, Instant instant, boolean exceptionOutOfBound) {
+        return getTimeSeriesWithDomainId(inDomainId)
+                .map(doubleTimeSeries -> {
+                    Map<String, String> tags = doubleTimeSeries.getMetadata().getTags();
+                    String tmpInDomainId = tags.get(DataExchangesConstants.IN_DOMAIN + "." + DataExchangesConstants.MRID);
+                    String tmpOutDomainId = tags.get(DataExchangesConstants.OUT_DOMAIN + "." + DataExchangesConstants.MRID);
+                    if (tmpInDomainId.equals(inDomainId)) {
+                        return tmpOutDomainId;
+                    } else if (tmpOutDomainId.equals(inDomainId)) {
+                        return tmpInDomainId;
+                    }
+                    throw new AssertionError();
+                })
+                .distinct()
+                .collect(Collectors.toMap(Function.identity(), outDomainId -> getNetPosition(inDomainId, outDomainId, instant, exceptionOutOfBound)));
     }
 
     public List<DoubleTimeSeries> getTimeSeries(String inDomainId, String outDomainId) {
