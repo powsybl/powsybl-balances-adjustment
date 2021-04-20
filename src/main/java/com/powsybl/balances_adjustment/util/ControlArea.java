@@ -26,8 +26,13 @@ public class ControlArea implements NetworkArea {
 
     public ControlArea(Network network, String controlAreaId) {
         CgmesControlAreas controlAreas = network.getExtension(CgmesControlAreas.class);
-        terminalsAndBoundaries.addAll(controlAreas.getCgmesControlArea(controlAreaId).getTerminals());
-        terminalsAndBoundaries.addAll(controlAreas.getCgmesControlArea(controlAreaId).getBoundaries());
+        Set<Terminal> terminals = controlAreas.getCgmesControlArea(controlAreaId).getTerminals();
+        Set<Boundary> boundaries = controlAreas.getCgmesControlArea(controlAreaId).getBoundaries();
+        if (terminals.isEmpty() && boundaries.isEmpty()) {
+            throw new PowsyblException("Undefined tie flows for control area " + controlAreaId);
+        }
+        terminalsAndBoundaries.addAll(terminals);
+        terminalsAndBoundaries.addAll(boundaries);
 
         busesCache = getContainedBusViewBuses(network, terminalsAndBoundaries);
     }
