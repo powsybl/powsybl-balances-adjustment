@@ -7,6 +7,7 @@
 package com.powsybl.balances_adjustment.util;
 
 import com.powsybl.action.util.Scalable;
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.Identifiable;
 import com.powsybl.iidm.network.Injection;
 import com.powsybl.iidm.network.Load;
@@ -16,8 +17,7 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Miora Ralambotiana <miora.ralambotiana at rte-france.com>
@@ -27,7 +27,7 @@ public class NetworkAreaUtilTest {
     @Test
     public void testConformLoadsScalables() {
         Network network = EurostagTutorialExample1Factory.create();
-        VoltageLevelsAreaFactory factory = new VoltageLevelsAreaFactory(network.getVoltageLevelStream().map(Identifiable::getId).toArray(String[]::new));
+        NetworkAreaFactory factory = new VoltageLevelsAreaFactory(network.getVoltageLevelStream().map(Identifiable::getId).toArray(String[]::new));
         NetworkArea area = factory.create(network);
         Scalable scalable = NetworkAreaUtil.createConformLoadScalable(area);
         List<Injection> injections = scalable.filterInjections(network);
@@ -35,5 +35,32 @@ public class NetworkAreaUtilTest {
         Load load = network.getLoad("LOAD");
         assertTrue(injections.contains(load));
         assertEquals(10, scalable.scale(network, 10), 0.0);
+    }
+
+    @Test
+    public void testNoLoadScalables() {
+        Network network = EurostagTutorialExample1Factory.create();
+        NetworkAreaFactory factory = new VoltageLevelsAreaFactory("VLGEN");
+        NetworkArea area = factory.create(network);
+        try {
+            NetworkAreaUtil.createConformLoadScalable(area);
+            fail();
+        } catch (PowsyblException e) {
+            assertEquals("There is no load in this area", e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testNullLoadScalables() {
+        Network network = EurostagTutorialExample1Factory.create();
+        network.getLoad("LOAD").setP0(0.0);
+        NetworkAreaFactory factory = new VoltageLevelsAreaFactory(network.getVoltageLevelStream().map(Identifiable::getId).toArray(String[]::new));
+        NetworkArea area = factory.create(network);
+        try {
+            NetworkAreaUtil.createConformLoadScalable(area);
+            fail();
+        } catch (PowsyblException e) {
+            assertEquals("All loads' active power flows is null", e.getMessage());
+        }
     }
 }
