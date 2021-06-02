@@ -24,6 +24,7 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
 
     public static final double DEFAULT_THRESHOLD_NET_POSITION = 1;
     public static final int DEFAULT_MAX_NUMBER_ITERATIONS = 5;
+    public static final boolean DEFAULT_CONSTANT_POWER_SCALING = false;
 
     /**
      * Threshold for comparing net positions (given in MW).
@@ -36,11 +37,13 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
      */
     private int maxNumberIterations;
 
+    private boolean constantPowerScaling;
+
     /**
      * Constructor with default parameters
      */
     public BalanceComputationParameters() {
-        this(DEFAULT_THRESHOLD_NET_POSITION, DEFAULT_MAX_NUMBER_ITERATIONS);
+        this(DEFAULT_THRESHOLD_NET_POSITION, DEFAULT_MAX_NUMBER_ITERATIONS, DEFAULT_CONSTANT_POWER_SCALING);
     }
 
     /**
@@ -48,9 +51,10 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
      * @param threshold Threshold for comparing net positions (given in MW)
      * @param maxNumberIterations Maximum iteration number for balances adjustment
      */
-    public BalanceComputationParameters(double threshold, int maxNumberIterations) {
+    public BalanceComputationParameters(double threshold, int maxNumberIterations, boolean constantPowerScaling) {
         this.thresholdNetPosition = checkThresholdNetPosition(threshold);
         this.maxNumberIterations = checkMaxNumberIterations(maxNumberIterations);
+        this.constantPowerScaling = constantPowerScaling;
     }
 
     private static final double checkThresholdNetPosition(double threshold) {
@@ -65,6 +69,14 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
             throw new IllegalArgumentException("The maximum number of iterations must be positive");
         }
         return maxNumberIterations;
+    }
+
+    public boolean getConstantPowerScaling() {
+        return constantPowerScaling;
+    }
+
+    public void setConstantPowerScaling(boolean constantPowerScaling) {
+        this.constantPowerScaling = constantPowerScaling;
     }
 
     /**

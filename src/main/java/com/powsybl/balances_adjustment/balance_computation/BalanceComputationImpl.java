@@ -7,6 +7,7 @@
 package com.powsybl.balances_adjustment.balance_computation;
 
 import com.powsybl.action.util.Scalable;
+import com.powsybl.action.util.LoadScalable;
 import com.powsybl.balances_adjustment.util.NetworkArea;
 import com.powsybl.computation.ComputationManager;
 import com.powsybl.iidm.network.Network;
@@ -81,7 +82,18 @@ public class BalanceComputationImpl implements BalanceComputation {
                 double asked = entry.getValue();
 
                 Scalable scalable = area.getScalable();
-                double done = scalable.scale(network, balanceOffsets.get(area));
+                double done = 0;
+                if (parameters.getConstantPowerScaling()){
+                    if (scalable instanceof LoadScalable) {
+                        LoadScalable loadScalable = (LoadScalable) scalable;
+                        done = loadScalable.scaleConstantPowerFactor(network, balanceOffsets.get(area));
+                    }
+                    else {
+                        done = scalable.scale(network, balanceOffsets.get(area));}
+                }
+                else {
+                    done = scalable.scale(network, balanceOffsets.get(area));
+                }
                 LOGGER.info("Scaling for area {}: asked={}, done={}", area.getName(), asked, done);
             }
 
