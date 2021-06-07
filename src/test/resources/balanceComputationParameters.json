@@ -2,7 +2,7 @@
   "maxNumberIterations" : 11,
   "thresholdNetPosition" : 2.0,
   "load-flow-parameters" : {
-    "version" : "1.4",
+    "version" : "1.5",
     "voltageInitMode" : "DC_VALUES",
     "transformerVoltageControlOn" : true,
     "phaseShifterRegulationOn" : true,
@@ -13,6 +13,9 @@
     "writeSlackBus" : false,
     "dc" : false,
     "distributedSlack" : true,
-    "balanceType" : "PROPORTIONAL_TO_GENERATION_P_MAX"
+    "balanceType" : "PROPORTIONAL_TO_GENERATION_P_MAX",
+    "dcUseTransformerRatio" : true,
+    "countriesToBalance" : [ ],
+    "connectedComponentMode" : "MAIN"
   }
 }
