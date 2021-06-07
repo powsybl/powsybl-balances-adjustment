@@ -24,7 +24,7 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
 
     public static final double DEFAULT_THRESHOLD_NET_POSITION = 1;
     public static final int DEFAULT_MAX_NUMBER_ITERATIONS = 5;
-    public static final boolean DEFAULT_CONSTANT_POWER_SCALING = false;
+    public static final boolean DEFAULT_LOAD_POWER_FACTOR_CONSTANT = false;
 
     /**
      * Threshold for comparing net positions (given in MW).
@@ -37,13 +37,13 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
      */
     private int maxNumberIterations;
 
-    private boolean constantPowerScaling;
+    private boolean loadPowerFactorConstant;
 
     /**
      * Constructor with default parameters
      */
     public BalanceComputationParameters() {
-        this(DEFAULT_THRESHOLD_NET_POSITION, DEFAULT_MAX_NUMBER_ITERATIONS, DEFAULT_CONSTANT_POWER_SCALING);
+        this(DEFAULT_THRESHOLD_NET_POSITION, DEFAULT_MAX_NUMBER_ITERATIONS, DEFAULT_LOAD_POWER_FACTOR_CONSTANT);
     }
 
     /**
@@ -51,10 +51,14 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
      * @param threshold Threshold for comparing net positions (given in MW)
      * @param maxNumberIterations Maximum iteration number for balances adjustment
      */
-    public BalanceComputationParameters(double threshold, int maxNumberIterations, boolean constantPowerScaling) {
+    public BalanceComputationParameters(double threshold, int maxNumberIterations) {
+        this(threshold, maxNumberIterations, DEFAULT_LOAD_POWER_FACTOR_CONSTANT);
+    }
+
+    public BalanceComputationParameters(double threshold, int maxNumberIterations, boolean loadPowerFactorConstant) {
         this.thresholdNetPosition = checkThresholdNetPosition(threshold);
         this.maxNumberIterations = checkMaxNumberIterations(maxNumberIterations);
-        this.constantPowerScaling = constantPowerScaling;
+        this.loadPowerFactorConstant = loadPowerFactorConstant;
     }
 
     private static final double checkThresholdNetPosition(double threshold) {
@@ -71,12 +75,12 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
         return maxNumberIterations;
     }
 
-    public boolean getConstantPowerScaling() {
-        return constantPowerScaling;
+    public boolean isLoadPowerFactorConstant() {
+        return loadPowerFactorConstant;
     }
 
-    public void setConstantPowerScaling(boolean constantPowerScaling) {
-        this.constantPowerScaling = constantPowerScaling;
+    public void setLoadPowerFactorConstant(boolean loadPowerFactorConstant) {
+        this.loadPowerFactorConstant = loadPowerFactorConstant;
     }
 
     /**
