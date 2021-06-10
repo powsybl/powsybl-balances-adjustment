@@ -133,4 +133,20 @@ public class BalanceComputationImplDcTest {
         assertEquals(1500, countryAreaBE.create(testNetwork1).getNetPosition(), 1e-3);
 
     }
+
+    @Test
+    public void testConstantPowerFactor() {
+        parameters.setLoadPowerFactorConstant(true);
+        List<BalanceComputationArea> areas = new ArrayList<>();
+        areas.add(new BalanceComputationArea("FR", countryAreaFR, scalableFR, 1200.));
+        areas.add(new BalanceComputationArea("BE", countryAreaBE, scalableBE, 1300.));
+
+        BalanceComputation balanceComputation = balanceComputationFactory.create(areas, loadFlowRunner, computationManager);
+
+        BalanceComputationResult result = balanceComputation.run(testNetwork1, testNetwork1.getVariantManager().getWorkingVariantId(), parameters).join();
+
+        assertEquals(BalanceComputationResult.Status.SUCCESS, result.getStatus());
+        assertEquals(2, result.getIterationCount());
+
+    }
 }
