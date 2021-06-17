@@ -81,7 +81,12 @@ public class BalanceComputationImpl implements BalanceComputation {
                 double asked = entry.getValue();
 
                 Scalable scalable = area.getScalable();
-                double done = scalable.scale(network, balanceOffsets.get(area));
+                double done = 0;
+                if (parameters.isLoadPowerFactorConstant()) {
+                    done = scalable.scaleWithConstantPowerFactor(network, balanceOffsets.get(area));
+                } else {
+                    done = scalable.scale(network, balanceOffsets.get(area));
+                }
                 LOGGER.info("Scaling for area {}: asked={}, done={}", area.getName(), asked, done);
             }
 

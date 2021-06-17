@@ -24,6 +24,7 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
 
     public static final double DEFAULT_THRESHOLD_NET_POSITION = 1;
     public static final int DEFAULT_MAX_NUMBER_ITERATIONS = 5;
+    public static final boolean DEFAULT_LOAD_POWER_FACTOR_CONSTANT = false;
 
     /**
      * Threshold for comparing net positions (given in MW).
@@ -36,11 +37,13 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
      */
     private int maxNumberIterations;
 
+    private boolean loadPowerFactorConstant;
+
     /**
      * Constructor with default parameters
      */
     public BalanceComputationParameters() {
-        this(DEFAULT_THRESHOLD_NET_POSITION, DEFAULT_MAX_NUMBER_ITERATIONS);
+        this(DEFAULT_THRESHOLD_NET_POSITION, DEFAULT_MAX_NUMBER_ITERATIONS, DEFAULT_LOAD_POWER_FACTOR_CONSTANT);
     }
 
     /**
@@ -49,8 +52,13 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
      * @param maxNumberIterations Maximum iteration number for balances adjustment
      */
     public BalanceComputationParameters(double threshold, int maxNumberIterations) {
+        this(threshold, maxNumberIterations, DEFAULT_LOAD_POWER_FACTOR_CONSTANT);
+    }
+
+    public BalanceComputationParameters(double threshold, int maxNumberIterations, boolean loadPowerFactorConstant) {
         this.thresholdNetPosition = checkThresholdNetPosition(threshold);
         this.maxNumberIterations = checkMaxNumberIterations(maxNumberIterations);
+        this.loadPowerFactorConstant = loadPowerFactorConstant;
     }
 
     private static final double checkThresholdNetPosition(double threshold) {
@@ -65,6 +73,14 @@ public class BalanceComputationParameters extends AbstractExtendable<BalanceComp
             throw new IllegalArgumentException("The maximum number of iterations must be positive");
         }
         return maxNumberIterations;
+    }
+
+    public boolean isLoadPowerFactorConstant() {
+        return loadPowerFactorConstant;
+    }
+
+    public void setLoadPowerFactorConstant(boolean loadPowerFactorConstant) {
+        this.loadPowerFactorConstant = loadPowerFactorConstant;
     }
 
     /**
