@@ -48,7 +48,7 @@ public class CountryAreaTest {
 
     private double getSumFlowCountry(Network network, Country country) {
         double sumFlow = 0;
-        List<Injection> injections = getInjectionStream(network).filter(i -> country.equals(i.getTerminal().getVoltageLevel().getSubstation().getCountry().get()))
+        List<Injection> injections = getInjectionStream(network).filter(i -> country.equals(i.getTerminal().getVoltageLevel().getSubstation().map(Substation::getNullableCountry).orElse(null)))
                 .collect(Collectors.toList());
         for (Injection injection : injections) {
             sumFlow += injection.getTerminal().getBusBreakerView().getBus().isInMainConnectedComponent() ? injection.getTerminal().getP() : 0;
