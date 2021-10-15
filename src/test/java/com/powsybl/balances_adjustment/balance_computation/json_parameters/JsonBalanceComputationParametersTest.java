@@ -15,10 +15,10 @@ import com.powsybl.balances_adjustment.balance_computation.BalanceComputationPar
 import com.powsybl.commons.AbstractConverterTest;
 import com.powsybl.commons.extensions.AbstractExtension;
 import com.powsybl.loadflow.LoadFlowParameters;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import static org.junit.Assert.*;
 
@@ -31,17 +31,14 @@ public class JsonBalanceComputationParametersTest extends AbstractConverterTest 
     public void testDefaultBalanceComputationConfig() {
         BalanceComputationParameters parameters = new BalanceComputationParameters();
         BalanceComputationParameters.load();
-        assertEquals(parameters.getMaxNumberIterations(), BalanceComputationParameters.DEFAULT_MAX_NUMBER_ITERATIONS);
-        assertEquals(parameters.getThresholdNetPosition(), BalanceComputationParameters.DEFAULT_THRESHOLD_NET_POSITION, .01);
+        assertEquals(BalanceComputationParameters.DEFAULT_MAX_NUMBER_ITERATIONS, parameters.getMaxNumberIterations());
+        assertEquals(BalanceComputationParameters.DEFAULT_THRESHOLD_NET_POSITION, parameters.getThresholdNetPosition(), .01);
     }
 
     @Test
     public void readError() {
-        try {
-            JsonBalanceComputationParameters.read(getClass().getResourceAsStream("/balanceComputationParametersError.json"));
-            Assert.fail();
-        } catch (AssertionError ignored) {
-        }
+        InputStream is = getClass().getResourceAsStream("/balanceComputationParametersError.json");
+        assertThrows(AssertionError.class, () -> JsonBalanceComputationParameters.read(is));
     }
 
     @Test
