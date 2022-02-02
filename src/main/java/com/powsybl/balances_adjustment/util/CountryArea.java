@@ -6,6 +6,7 @@
  */
 package com.powsybl.balances_adjustment.util;
 
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.*;
 
 import java.util.*;
@@ -58,6 +59,26 @@ public class CountryArea implements NetworkArea {
     @Override
     public Collection<Bus> getContainedBusViewBuses() {
         return Collections.unmodifiableCollection(busesCache);
+    }
+
+    public double getLeavingFlowToCountry(Country country) {
+        if (countries.contains(country)) {
+            throw new PowsyblException("The country " + country.getName() + " is contained in the control area");
+        }
+        double sum = 0;
+        for (Line line : lineBordersCache) {
+            if (line.getTerminal1().getVoltageLevel().getSubstation().get().getCountry().get().equals(country)
+                    || line.getTerminal2().getVoltageLevel().getSubstation().get().getCountry().get().equals(country)) {
+                sum += getLeavingFlow(line);
+            }
+        }
+        for (HvdcLine line : hvdcLineBordersCache) {
+            if (line.getConverterStation1().getTerminal().getVoltageLevel().getSubstation().get().getCountry().get().equals(country)
+                    || line.getConverterStation2().getTerminal().getVoltageLevel().getSubstation().get().getCountry().get().equals(country)) {
+                sum += getLeavingFlow(line);
+            }
+        }
+        return sum;
     }
 
     private boolean isAreaBorder(DanglingLine danglingLine) {
