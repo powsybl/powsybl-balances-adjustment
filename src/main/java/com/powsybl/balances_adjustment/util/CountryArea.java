@@ -61,20 +61,21 @@ public class CountryArea implements NetworkArea {
         return Collections.unmodifiableCollection(busesCache);
     }
 
-    public double getLeavingFlowToCountry(Country country) {
-        if (countries.contains(country)) {
-            throw new PowsyblException("The country " + country.getName() + " is contained in the control area");
-        }
+    public double getLeavingFlowToCountry(CountryArea countryArea) {
+        countryArea.getCountries().stream().forEach(country -> {
+            if (countries.contains(country)) {
+                throw new PowsyblException("The leaving flow to the country area cannot be computed. " +
+                        "The country " + country.getName() + " is contained in both control areas.");
+            }
+        });
         double sum = 0;
         for (Line line : lineBordersCache) {
-            if (line.getTerminal1().getVoltageLevel().getSubstation().get().getCountry().get().equals(country)
-                    || line.getTerminal2().getVoltageLevel().getSubstation().get().getCountry().get().equals(country)) {
+            if (countryArea.isAreaBorder(line)) {
                 sum += getLeavingFlow(line);
             }
         }
         for (HvdcLine line : hvdcLineBordersCache) {
-            if (line.getConverterStation1().getTerminal().getVoltageLevel().getSubstation().get().getCountry().get().equals(country)
-                    || line.getConverterStation2().getTerminal().getVoltageLevel().getSubstation().get().getCountry().get().equals(country)) {
+            if (countryArea.isAreaBorder(line)) {
                 sum += getLeavingFlow(line);
             }
         }

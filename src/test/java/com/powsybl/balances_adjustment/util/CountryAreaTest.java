@@ -80,16 +80,22 @@ public class CountryAreaTest {
 
     @Test
     public void testGetLeavingFlowToCountry() {
-        assertEquals(100.0, countryAreaFR.create(testNetwork2).getLeavingFlowToCountry(Country.ES), 1e-3);
-        assertEquals(-100.0, countryAreaES.create(testNetwork2).getLeavingFlowToCountry(Country.FR), 1e-3);
-        assertEquals(-324.666, countryAreaFR.create(testNetwork1).getLeavingFlowToCountry(Country.BE), 1e-3);
-        assertEquals(324.666, countryAreaBE.create(testNetwork1).getLeavingFlowToCountry(Country.FR), 1e-3);
-        assertEquals(0.0, countryAreaBE.create(testNetwork1).getLeavingFlowToCountry(Country.ES), 1e-3);
+        CountryArea countryAreaFR2 = countryAreaFR.create(testNetwork2);
+        CountryArea countryAreaES2 = countryAreaES.create(testNetwork2);
+        CountryArea countryAreaFR1 = countryAreaFR.create(testNetwork1);
+        CountryArea countryAreaBE1 = countryAreaBE.create(testNetwork1);
+        CountryArea countryAreaES1 = countryAreaES.create(testNetwork1);
+
+        assertEquals(100.0, countryAreaFR2.getLeavingFlowToCountry(countryAreaES2), 1e-3);
+        assertEquals(-100.0, countryAreaES2.getLeavingFlowToCountry(countryAreaFR2), 1e-3);
+        assertEquals(-324.666, countryAreaFR1.getLeavingFlowToCountry(countryAreaBE1), 1e-3);
+        assertEquals(324.666, countryAreaBE1.getLeavingFlowToCountry(countryAreaFR1), 1e-3);
+        assertEquals(0.0, countryAreaBE1.getLeavingFlowToCountry(countryAreaES1), 1e-3);
         try {
-            countryAreaFR.create(testNetwork1).getLeavingFlowToCountry(Country.FR);
+            countryAreaFR.create(testNetwork1).getLeavingFlowToCountry(countryAreaFR1);
             fail();
         } catch (PowsyblException e) {
-            assertEquals("The country FRANCE is contained in the control area", e.getMessage());
+            assertEquals("The leaving flow to the country area cannot be computed. The country FRANCE is contained in both control areas.", e.getMessage());
         }
     }
 }
