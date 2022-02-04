@@ -6,6 +6,7 @@
  */
 package com.powsybl.balances_adjustment.util;
 
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.*;
 
 import java.util.*;
@@ -58,6 +59,27 @@ public class CountryArea implements NetworkArea {
     @Override
     public Collection<Bus> getContainedBusViewBuses() {
         return Collections.unmodifiableCollection(busesCache);
+    }
+
+    public double getLeavingFlowToCountry(CountryArea countryArea) {
+        countryArea.getCountries().stream().forEach(country -> {
+            if (countries.contains(country)) {
+                throw new PowsyblException("The leaving flow to the country area cannot be computed. " +
+                        "The country " + country.getName() + " is contained in both control areas.");
+            }
+        });
+        double sum = 0;
+        for (Line line : lineBordersCache) {
+            if (countryArea.isAreaBorder(line)) {
+                sum += getLeavingFlow(line);
+            }
+        }
+        for (HvdcLine line : hvdcLineBordersCache) {
+            if (countryArea.isAreaBorder(line)) {
+                sum += getLeavingFlow(line);
+            }
+        }
+        return sum;
     }
 
     private boolean isAreaBorder(DanglingLine danglingLine) {

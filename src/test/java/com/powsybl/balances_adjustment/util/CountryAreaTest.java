@@ -6,6 +6,7 @@
  */
 package com.powsybl.balances_adjustment.util;
 
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.*;
 import org.junit.Before;
@@ -27,6 +28,7 @@ public class CountryAreaTest {
 
     private CountryAreaFactory countryAreaFR;
     private CountryAreaFactory countryAreaES;
+    private CountryAreaFactory countryAreaBE;
 
     @Before
     public void setUp() {
@@ -35,7 +37,7 @@ public class CountryAreaTest {
 
         countryAreaFR = new CountryAreaFactory(Country.FR);
         countryAreaES = new CountryAreaFactory(Country.ES);
-
+        countryAreaBE = new CountryAreaFactory(Country.BE);
     }
 
     private Stream<Injection> getInjectionStream(Network network) {
@@ -74,5 +76,26 @@ public class CountryAreaTest {
         Network network = Importers.loadNetwork("testCaseSpecialDevices.xiidm", getClass().getResourceAsStream("/testCaseSpecialDevices.xiidm"));
         assertEquals(100, countryAreaFR.create(network).getNetPosition(), 1e-3);
         assertEquals(-100, countryAreaES.create(network).getNetPosition(), 1e-3);
+    }
+
+    @Test
+    public void testGetLeavingFlowToCountry() {
+        CountryArea countryAreaFR2 = countryAreaFR.create(testNetwork2);
+        CountryArea countryAreaES2 = countryAreaES.create(testNetwork2);
+        CountryArea countryAreaFR1 = countryAreaFR.create(testNetwork1);
+        CountryArea countryAreaBE1 = countryAreaBE.create(testNetwork1);
+        CountryArea countryAreaES1 = countryAreaES.create(testNetwork1);
+
+        assertEquals(100.0, countryAreaFR2.getLeavingFlowToCountry(countryAreaES2), 1e-3);
+        assertEquals(-100.0, countryAreaES2.getLeavingFlowToCountry(countryAreaFR2), 1e-3);
+        assertEquals(-324.666, countryAreaFR1.getLeavingFlowToCountry(countryAreaBE1), 1e-3);
+        assertEquals(324.666, countryAreaBE1.getLeavingFlowToCountry(countryAreaFR1), 1e-3);
+        assertEquals(0.0, countryAreaBE1.getLeavingFlowToCountry(countryAreaES1), 1e-3);
+        try {
+            countryAreaFR.create(testNetwork1).getLeavingFlowToCountry(countryAreaFR1);
+            fail();
+        } catch (PowsyblException e) {
+            assertEquals("The leaving flow to the country area cannot be computed. The country FRANCE is contained in both control areas.", e.getMessage());
+        }
     }
 }
