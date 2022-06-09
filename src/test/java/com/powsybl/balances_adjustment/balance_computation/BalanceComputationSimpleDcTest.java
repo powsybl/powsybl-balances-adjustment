@@ -6,12 +6,12 @@
  */
 package com.powsybl.balances_adjustment.balance_computation;
 
-import com.powsybl.action.util.Scalable;
 import com.powsybl.balances_adjustment.util.CountryAreaFactory;
 import com.powsybl.balances_adjustment.util.CountryAreaTest;
 import com.powsybl.computation.ComputationManager;
 import com.powsybl.computation.local.LocalComputationManager;
 import com.powsybl.iidm.import_.Importers;
+import com.powsybl.iidm.modification.scalable.Scalable;
 import com.powsybl.iidm.network.*;
 import com.powsybl.loadflow.*;
 import com.powsybl.openloadflow.OpenLoadFlowProvider;
