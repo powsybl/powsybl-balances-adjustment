@@ -25,8 +25,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
 /**
@@ -88,7 +86,7 @@ public class BalanceComputationSimpleDcTest {
 
         BalanceComputationImpl balanceComputation = Mockito.spy(new BalanceComputationImpl(areas, computationManager, loadFlowRunnerMock));
         LoadFlowResult loadFlowResult = new LoadFlowResultImpl(false, new HashMap<>(), "logs");
-        doReturn(loadFlowResult).when(loadFlowRunnerMock).run(anyObject(), anyString(), anyObject(), anyObject());
+        doReturn(loadFlowResult).when(loadFlowRunnerMock).run(Mockito.any(), Mockito.anyString(), Mockito.any(), Mockito.any());
 
         BalanceComputationResult result = balanceComputation.run(simpleNetwork, simpleNetwork.getVariantManager().getWorkingVariantId(), parameters).join();
 
