@@ -6,8 +6,8 @@
  */
 package com.powsybl.balances_adjustment.util;
 
-import com.powsybl.action.util.Scalable;
 import com.powsybl.commons.PowsyblException;
+import com.powsybl.iidm.modification.scalable.Scalable;
 import com.powsybl.iidm.network.Identifiable;
 import com.powsybl.iidm.network.Injection;
 import com.powsybl.iidm.network.Load;
