@@ -59,8 +59,8 @@
     <properties>
         <java.version>11</java.version>
 
-        <powsybl-core.version>4.9.0</powsybl-core.version>
-        <powsybl-open-loadflow.version>0.21.0</powsybl-open-loadflow.version>
+        <powsybl-core.version>4.10.0</powsybl-core.version>
+        <powsybl-open-loadflow.version>0.23.0</powsybl-open-loadflow.version>
     </properties>
 
     <dependencyManagement>
