@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.google.auto.service.AutoService;
 import com.powsybl.balances_adjustment.balance_computation.BalanceComputationParameters;
 import com.powsybl.commons.AbstractConverterTest;
+import com.powsybl.commons.ComparisonUtils;
 import com.powsybl.commons.extensions.AbstractExtension;
 import com.powsybl.loadflow.LoadFlowParameters;
 import org.junit.Test;
@@ -71,7 +72,7 @@ public class JsonBalanceComputationParametersTest extends AbstractConverterTest 
     public void writeExtension() throws IOException {
         BalanceComputationParameters parameters = new BalanceComputationParameters();
         parameters.addExtension(DummyExtension.class, new DummyExtension());
-        writeTest(parameters, JsonBalanceComputationParameters::write, AbstractConverterTest::compareTxt, "/balanceComputationParametersWithExtension.json");
+        writeTest(parameters, JsonBalanceComputationParameters::write, ComparisonUtils::compareTxt, "/balanceComputationParametersWithExtension.json");
     }
 
     @Test
