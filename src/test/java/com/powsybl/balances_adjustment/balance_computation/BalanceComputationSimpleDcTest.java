@@ -10,7 +10,6 @@ import com.powsybl.balances_adjustment.util.CountryAreaFactory;
 import com.powsybl.balances_adjustment.util.CountryAreaTest;
 import com.powsybl.computation.ComputationManager;
 import com.powsybl.computation.local.LocalComputationManager;
-import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.modification.scalable.Scalable;
 import com.powsybl.iidm.network.*;
 import com.powsybl.loadflow.*;
@@ -50,7 +49,7 @@ public class BalanceComputationSimpleDcTest {
 
     @Before
     public void setUp() {
-        simpleNetwork = Importers.loadNetwork("testSimpleNetwork.xiidm", CountryAreaTest.class.getResourceAsStream("/testSimpleNetwork.xiidm"));
+        simpleNetwork = Network.read("testSimpleNetwork.xiidm", CountryAreaTest.class.getResourceAsStream("/testSimpleNetwork.xiidm"));
 
         countryAreaFR = new CountryAreaFactory(Country.FR);
         countryAreaBE = new CountryAreaFactory(Country.BE);

@@ -7,7 +7,6 @@
 package com.powsybl.balances_adjustment.util;
 
 import com.powsybl.commons.PowsyblException;
-import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +31,7 @@ public class CountryAreaTest {
 
     @Before
     public void setUp() {
-        testNetwork1 = Importers.loadNetwork("testCase.xiidm", getClass().getResourceAsStream("/testCase.xiidm"));
+        testNetwork1 = Network.read("testCase.xiidm", getClass().getResourceAsStream("/testCase.xiidm"));
         testNetwork2 = NetworkTestFactory.createNetwork();
 
         countryAreaFR = new CountryAreaFactory(Country.FR);
@@ -73,7 +72,7 @@ public class CountryAreaTest {
 
     @Test
     public void testSpecialDevices() {
-        Network network = Importers.loadNetwork("testCaseSpecialDevices.xiidm", getClass().getResourceAsStream("/testCaseSpecialDevices.xiidm"));
+        Network network = Network.read("testCaseSpecialDevices.xiidm", getClass().getResourceAsStream("/testCaseSpecialDevices.xiidm"));
         assertEquals(100, countryAreaFR.create(network).getNetPosition(), 1e-3);
         assertEquals(-100, countryAreaES.create(network).getNetPosition(), 1e-3);
     }

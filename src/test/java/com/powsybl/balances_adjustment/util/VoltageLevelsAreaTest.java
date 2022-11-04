@@ -6,7 +6,6 @@
  */
 package com.powsybl.balances_adjustment.util;
 
-import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Network;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +25,7 @@ public class VoltageLevelsAreaTest {
 
     @Before
     public void setUp() {
-        testNetwork = Importers.loadNetwork("testCase.xiidm", VoltageLevelsAreaTest.class.getResourceAsStream("/testCase.xiidm"));
+        testNetwork = Network.read("testCase.xiidm", VoltageLevelsAreaTest.class.getResourceAsStream("/testCase.xiidm"));
 
         voltageLevelsArea = new VoltageLevelsAreaFactory("FFR1AA1", "DDE3AA1");
 
@@ -45,7 +44,7 @@ public class VoltageLevelsAreaTest {
 
     @Test
     public void testSpecialDevices() {
-        Network network = Importers.loadNetwork("testCaseSpecialDevices.xiidm", getClass().getResourceAsStream("/testCaseSpecialDevices.xiidm"));
+        Network network = Network.read("testCaseSpecialDevices.xiidm", getClass().getResourceAsStream("/testCaseSpecialDevices.xiidm"));
 
         NetworkAreaFactory test3wtFactory = new VoltageLevelsAreaFactory("VOLTAGE_LEVEL_FR_225KV");
         assertEquals(0, test3wtFactory.create(network).getNetPosition(), 1e-3);
